@@ -16,3 +16,15 @@ function csrf_field(string $token): string
 {
     return '<input type="hidden" name="_csrf" value="' . e($token) . '">';
 }
+
+/** Plain-text body -> safe paragraphs (escaped first; the block editor replaces this in a later lot). */
+function text_html(?string $s): string
+{
+    $out = '';
+    foreach (preg_split('/\n{2,}/', trim(str_replace("\r", '', (string) $s))) as $para) {
+        if ($para !== '') {
+            $out .= '<p>' . nl2br(e($para)) . '</p>';
+        }
+    }
+    return $out;
+}

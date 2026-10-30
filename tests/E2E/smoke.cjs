@@ -1,4 +1,4 @@
-// E2E (Playwright + node:test). Run: php -S 127.0.0.1:8080 -t public & node --test tests/E2E
+// E2E (Playwright + node:test). Run: php -S 127.0.0.1:8080 -t public bin/dev-router.php & node --test tests/E2E
 // Uses dev data only; all records created here are prefixed E2E- (fictitious).
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
@@ -76,4 +76,48 @@ test('responsive: catalogue has no horizontal overflow at 5 viewports (screensho
     assert.ok(overflow <= 0, `overflow ${overflow}px at ${w}x${h}`);
     await page.close();
   }
+});
+
+test('cms: create page, upload real image, switch theme, sitemap lists page', async () => {
+  const page = await browser.newPage();
+  const slug = `e2e-page-${Date.now()}`;
+  await login(page, 'kibarou.localhost', 'admin', 'admin@kibarou.localhost', 'dev-kibarou-passphrase-1');
+  await page.waitForURL('**/admin');
+
+  await page.goto(url('kibarou.localhost', '/admin/pages/new'));
+  await page.fill('input[name=title]', `E2E ${slug}`);
+  await page.fill('input[name=slug]', slug);
+  await page.fill('textarea[name=body]', 'Premier paragraphe.\n\n<b>pas de HTML</b>');
+  await page.fill('textarea[name=meta_description]', 'Description E2E');
+  await page.selectOption('select[name=status]', 'published');
+  await page.click('button.btn');
+  await page.waitForURL('**/admin/pages');
+  await page.goto(url('kibarou.localhost', `/${slug}`));
+  assert.match(await page.content(), /&lt;b&gt;pas de HTML&lt;\/b&gt;/);
+  assert.match(await page.content(), /<meta name="description" content="Description E2E">/);
+
+  // 1x1 transparent PNG, sent through a genuine multipart browser upload
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+  await page.goto(url('kibarou.localhost', '/admin/media'));
+  await page.setInputFiles('input[type=file]', { name: 'e2e.png', mimeType: 'image/png', buffer: png });
+  await page.fill('input[name=alt]', 'E2E image');
+  await page.click('button.btn');
+  await page.waitForURL('**/admin/media');
+  const src = await page.getAttribute('img.thumb >> nth=0', 'src');
+  assert.match(src, /^\/uploads\/\d+\/[0-9a-f]{24}\.png$/);
+  // browser navigation (Chromium resolves *.localhost; Node's request context does not)
+  assert.equal((await page.goto(url('kibarou.localhost', src))).status(), 200);
+
+  await page.goto(url('kibarou.localhost', '/admin/settings'));
+  await page.selectOption('select[name=theme]', 'elegance-prestige');
+  await page.click('button.btn');
+  await page.goto(url('kibarou.localhost', '/'));
+  assert.match(await page.content(), /themes\/elegance-prestige\.css/);
+  await page.goto(url('kibarou.localhost', '/admin/settings'));
+  await page.selectOption('select[name=theme]', 'corporate-premium');
+  await page.click('button.btn');
+
+  const sm = await page.goto(url('kibarou.localhost', '/sitemap.xml'));
+  assert.match(await sm.text(), new RegExp(`/${slug}`));
+  await page.screenshot({ path: 'test-results/cms-media.png' });
 });

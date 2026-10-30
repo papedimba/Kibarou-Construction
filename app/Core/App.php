@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use App\Controllers\Frontend\FallbackController;
 use App\Middleware\{CsrfMiddleware, TenantMiddleware};
 use App\Multisite\DomainManager;
 
@@ -15,6 +16,7 @@ final class App
     public function handle(Request $req): Response
     {
         try {
+            $this->c->set(Request::class, $req);
             $this->c->get(Session::class)->start($req->secure);
             $isPlatform = $req->host === DomainManager::normalize(Env::get('PLATFORM_HOST', '') ?? '');
             $router = new Router();
@@ -23,7 +25,7 @@ final class App
             if ($match === null) {
                 $res = $isPlatform || $req->host === ''
                     ? Response::html(View::render('errors/message', ['title' => 'Page introuvable', 'message' => 'Cette page n\'existe pas.']), 404)
-                    : $this->c->get(TenantMiddleware::class)->handle($req, fn() => Response::html(View::render('errors/message', ['title' => 'Page introuvable', 'message' => 'Cette page n\'existe pas.']), 404));
+                    : $this->c->get(TenantMiddleware::class)->handle($req, fn() => $this->c->get(FallbackController::class)->notFound($req, []));
             } else {
                 [$handler, $params, $routeMw] = $match;
                 $stack = [...($isPlatform ? [] : [TenantMiddleware::class]), CsrfMiddleware::class, ...$routeMw];

@@ -10,3 +10,5 @@ Migrations versionnées : `database/migrations/*.sql`, appliquées par `php bin/
 Les unicités métier sont par site (`UNIQUE (site_id, reference)`, `(site_id, slug)`).
 
 Tables prévues aux lots suivants : voir §17 du cahier des charges.
+
+**Lot 2** (`004_cms.sql`) : `pages`, `page_revisions` (FK composite vers `pages`), `posts`, `media`, `menus`, `menu_items` (FK composite), `redirects`. Toutes isolées par `site_id`.

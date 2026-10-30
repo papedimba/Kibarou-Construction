@@ -10,3 +10,5 @@
 /playwright-report/
 .phpunit.result.cache
 !.gitkeep
+/public/uploads/*
+!/public/uploads/.htaccess

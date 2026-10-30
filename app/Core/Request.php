@@ -18,6 +18,7 @@ final class Request
         public readonly array $cookies = [],
         public readonly bool $secure = false,
         public readonly string $ip = '0.0.0.0',
+        public readonly array $files = [],
     ) {
         $this->host = DomainManager::normalize($host);
     }
@@ -36,7 +37,13 @@ final class Request
             ($_SERVER['HTTPS'] ?? 'off') !== 'off',
             // shortcut: X-Forwarded-For ignored (spoofable); read it only behind a trusted proxy
             $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0',
+            $_FILES,
         );
+    }
+
+    public function url(): string
+    {
+        return ($this->secure ? 'https' : 'http') . '://' . $this->host . $this->path;
     }
 
     public function input(string $key, mixed $default = null): mixed

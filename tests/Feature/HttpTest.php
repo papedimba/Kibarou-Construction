@@ -3,11 +3,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Core\{App, Container, Request, Response};
 use Tests\DbTestCase;
 
 final class HttpTest extends DbTestCase
 {
+    use \Tests\HttpHelpers;
+
     private int $a;
     private int $b;
 
@@ -16,22 +17,6 @@ final class HttpTest extends DbTestCase
         parent::setUp();
         $this->a = $this->makeSite('alpha', 'alpha.test');
         $this->b = $this->makeSite('beta', 'beta.test');
-    }
-
-    /** Fresh container per request, like a real PHP request; $_SESSION persists like a cookie would. */
-    private function call(string $method, string $path, string $host, array $post = [], bool $csrf = true, array $query = []): Response
-    {
-        // Real wiring (no injected services): catches autowiring regressions that unit-level setup would hide.
-        $app = new App(new Container(), dirname(__DIR__, 2));
-        if ($method === 'POST' && $csrf) {
-            $post['_csrf'] = $_SESSION['_csrf'] ??= bin2hex(random_bytes(8));
-        }
-        return $app->handle(new Request($method, $path, $host, $query, $post, ip: '10.0.0.1'));
-    }
-
-    private function login(string $host, string $email, string $pass = 'correct-horse-battery', string $area = 'admin'): Response
-    {
-        return $this->call('POST', "/$area/login", $host, ['email' => $email, 'password' => $pass]);
     }
 
     public function testUnknownHostIs404AndSuspendedSiteIs503(): void

@@ -33,7 +33,7 @@
 
 ## Plan (lots)
 1. **Lot 1 (livré)** : socle, multisite, auth/RBAC, admin plateforme minimale, terrains (CRUD + catalogue filtré), tests.
-2. Lot 2 : CMS (pages, révisions, menus, médias, SEO, paramètres, thèmes).
+2. **Lot 2 (livré)** : CMS — pages avec révisions, articles, médias, menus, redirections 301, réglages, SEO (meta, canonical, Open Graph, sitemap.xml, robots.txt), 3 thèmes sélectionnables.
 3. Lot 3 : éditeur de blocs (BlockRegistry en liste blanche, JSON versionné).
 4. Lot 4 : module foncier complet (images, documents privés, localisations, lotissements/parcelles, PDF, QR) + BTP + réalisations.
 5. Lot 5 : CRM, formulaires, antispam, export CSV.
@@ -42,3 +42,12 @@
 
 ## Hors périmètre actuel (non fait)
 Tout ce qui figure aux lots 2 à 7. Le logo officiel est dans `public/assets/images/brand/` mais pas encore intégré aux gabarits.
+
+## Décisions du lot 2
+- **Contenu en texte brut** (échappé, paragraphes) : sûr par construction. Le HTML riche arrive avec l'éditeur de blocs (lot 3), validé côté serveur.
+- **SEO en colonnes** `meta_title`/`meta_description` de `pages`/`posts` (au lieu d'une table `seo_metadata` séparée) : une jointure de moins ; migrable plus tard.
+- **Uploads** : type déterminé par le contenu (`finfo` + `getimagesize`), SVG refusé, nom aléatoire, extension imposée, stockage `public/uploads/<site_id>/`, exécution de scripts interdite par `.htaccess`.
+- **Slugs réservés** (`admin`, `terrains`, `actualites`, `assets`, `uploads`, `platform`, `sitemap.xml`, `robots.txt`) ; route `/{slug}` déclarée en dernier.
+- **Liens** (menus, redirections) : chemins `/…` ou `http(s)://` uniquement (pas de `javascript:`).
+- **Thèmes** : liste blanche de 3 fichiers CSS (variables) ; aucun code fourni par l'utilisateur n'est exécuté.
+- Limites connues : redirections 301 seulement pour les chemins sans page correspondante ; sitemap limité à 1000 terrains ; catégories/tags d'articles non implémentés ; menus sans réordonnancement (ordre d'ajout).

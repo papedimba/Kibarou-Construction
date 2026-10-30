@@ -5,4 +5,6 @@ session régénérée au login, cookie HttpOnly/SameSite lié à l'hôte ; limit
 réponse de login uniforme (pas d'énumération de comptes) ; RBAC par site ; protection IDOR (accès par `site_id` + `id`) ;
 en-têtes CSP/X-Frame-Options/nosniff ; erreurs centralisées journalisées dans `storage/logs/app.log` ; secrets dans `.env` (ignoré par git).
 
-Non encore implémenté : uploads et contrôle MIME, path traversal des fichiers, documents privés, antispam des formulaires, journal d'activité (table prête), 2FA.
+Lot 2 : uploads contrôlés par contenu (MIME réel, SVG refusé, 5 Mo, nom aléatoire, exécution interdite dans `public/uploads`), suppression de fichier par `basename`, contenu échappé (pas de HTML brut), liens `javascript:` refusés, thèmes en liste blanche.
+
+Non encore implémenté : documents privés, antispam des formulaires, journal d'activité (table prête), 2FA.
