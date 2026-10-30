@@ -4,17 +4,17 @@ declare(strict_types=1);
 namespace App\Controllers\Admin;
 
 use App\Core\{Page, Request, Response};
-use App\Repositories\SettingsRepository;
+use App\Repositories\{MediaRepository, SettingsRepository};
 
 final class SettingsController
 {
-    public function __construct(private Page $page, private SettingsRepository $settings)
+    public function __construct(private Page $page, private SettingsRepository $settings, private MediaRepository $media)
     {
     }
 
     public function form(Request $req, array $p): Response
     {
-        return $this->page->render('admin/settings', ['values' => $this->settings->all(), 'errors' => [], 'title' => 'Réglages']);
+        return $this->page->render('admin/settings', ['values' => $this->settings->all(), 'errors' => [], 'title' => 'Réglages', 'library' => $this->media->all()]);
     }
 
     public function save(Request $req, array $p): Response
@@ -37,6 +37,11 @@ final class SettingsController
         if ($v['logo_url'] !== '' && !preg_match('#^/(uploads|assets)/[A-Za-z0-9_./-]+$#', $v['logo_url']) || str_contains($v['logo_url'], '..')) {
             $e['logo_url'] = 'Logo : chemin interne attendu (/uploads/… ou /assets/…).';
         }
+        foreach ([1, 2, 3] as $n) { // an image id must exist in this site's own library
+            if ($v["stage_$n"] !== '' && (!ctype_digit($v["stage_$n"]) || !$this->media->find((int) $v["stage_$n"]))) {
+                $e["stage_$n"] = "Photo $n : média introuvable.";
+            }
+        }
         if ($v['home_page'] !== '' && !preg_match('/^[a-z0-9-]{1,190}$/', $v['home_page'])) {
             $e['home_page'] = 'Page d\'accueil : identifiant de page invalide.';
         }
@@ -44,7 +49,7 @@ final class SettingsController
             $e['meta_description'] = 'Un champ est trop long.';
         }
         if ($e) {
-            return $this->page->render('admin/settings', ['values' => $v, 'errors' => $e, 'title' => 'Réglages'], 422);
+            return $this->page->render('admin/settings', ['values' => $v, 'errors' => $e, 'title' => 'Réglages', 'library' => $this->media->all()], 422);
         }
         foreach ($v as $k => $val) {
             $this->settings->set($k, $val);

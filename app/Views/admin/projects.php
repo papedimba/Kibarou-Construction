@@ -4,7 +4,7 @@
   <thead><tr><th>Nom</th><th>Statut</th><th>Publié</th><th></th></tr></thead>
   <tbody>
   <?php foreach ($items as $r): ?>
-    <tr><td><?= e($r['name']) ?></td><td><?= e($statuses[$r['status']] ?? $r['status']) ?></td><td><?= $r['is_published'] ? 'Oui' : 'Non' ?></td>
+    <tr><td><?= e($r['name']) ?></td><td><?= badge($r['status'], $statuses[$r['status']] ?? null) ?></td><td><?= badge($r['is_published'] ? 'published' : 'draft') ?></td>
     <td><a href="/admin/realisations/<?= (int) $r['id'] ?>/edit">Modifier</a>
       <form method="post" action="/admin/realisations/<?= (int) $r['id'] ?>/delete" class="inline"><?= csrf_field($csrf) ?><button class="danger">Supprimer</button></form></td></tr>
   <?php endforeach; ?>

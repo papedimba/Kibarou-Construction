@@ -20,6 +20,7 @@ final class Icons
         }
         $svg = (string) file_get_contents(__DIR__ . "/icons/$name.svg");
         $svg = preg_replace('/<!--.*?-->/s', '', $svg);
-        return preg_replace('/\b(width|height)="24"/', '$1="' . $size . '"', $svg, 2) . '';
+        $svg = preg_replace('/\b(width|height)="24"/', '$1="' . $size . '"', $svg, 2);
+        return preg_replace('/<svg/', '<svg aria-hidden="true" focusable="false"', $svg, 1) ?? '';
     }
 }

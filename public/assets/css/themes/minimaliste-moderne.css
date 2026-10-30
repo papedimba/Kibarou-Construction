@@ -1,2 +1,2 @@
-:root{--blue:#111827;--red:#2563eb;--light:#f3f4f6}
-.btn,button{border-radius:2px}
+:root{--blue:#111827;--red:#1d4ed8;--light:#eef0f3;--soft:#f6f7f9;--ink:#111827;--font:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+h1,h2,h3{font-weight:600;letter-spacing:-.03em}

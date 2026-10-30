@@ -390,3 +390,58 @@ test('block editor: build, nest, drag&drop, reorder, device preview, save, publi
   assert.match(await page.textContent('main'), /Titre E2E v2/); // visitors still see the published v2
   assert.deepEqual(errors, []);
 });
+
+test('design: pinned scenes follow the reading, live count, mobile menus, no overflow at 5 widths, clean console', async () => {
+  const errors = [];
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(url('kibarou.localhost', '/'));
+  assert.equal(await page.getAttribute('.stage', 'data-scene'), '1');
+  await page.evaluate(() => document.querySelector('#services').scrollIntoView());
+  await page.waitForFunction(() => document.querySelector('.stage').dataset.scene === '2');
+  await page.evaluate(() => document.querySelector('#pourquoi').scrollIntoView());
+  await page.waitForFunction(() => document.querySelector('.stage').dataset.scene === '3');
+  // the visible scene's opacity really changes (crossfade), not just the attribute
+  await page.waitForFunction(() => getComputedStyle(document.querySelector('.scene-3')).opacity === '1' && getComputedStyle(document.querySelector('.scene-1')).opacity === '0');
+
+  await page.fill('[data-live] [name=max]', '1000000000');
+  await page.waitForFunction(() => /terrain/.test(document.querySelector('[data-live-out]').textContent));
+  assert.match(await page.textContent('[data-live] [name=max]') + (await page.inputValue('[data-live] [name=max]')), /1 000 000 000/);
+
+  for (const [w, h] of [[375, 812], [390, 844], [768, 1024], [1366, 768], [1920, 1080]]) {
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto(url('kibarou.localhost', '/'));
+    const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    assert.ok(over <= 0, `home overflow ${over}px at ${w}`);
+    await page.screenshot({ path: `test-results/home-${w}x${h}.png` });
+  }
+
+  // phone menu: collapsed by default with script, opens on demand
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(url('kibarou.localhost', '/'));
+  assert.equal(await page.locator('.site-head .menu nav a:has-text("Contact")').isVisible(), false);
+  await page.click('.site-head .menu summary');
+  assert.equal(await page.locator('.site-head .menu nav a:has-text("Contact")').isVisible(), true);
+
+  // admin: sidebar on desktop, overlay menu on phone, no overflow at 5 widths
+  await login(page, 'kibarou.localhost', 'admin', 'admin@kibarou.localhost', 'dev-kibarou-passphrase-1');
+  await page.waitForURL('**/admin');
+  for (const [w, h] of [[375, 812], [390, 844], [768, 1024], [1366, 768], [1920, 1080]]) {
+    await page.setViewportSize({ width: w, height: h });
+    for (const path of ['/admin', '/admin/terrains', '/admin/prospects']) {
+      await page.goto(url('kibarou.localhost', path));
+      const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      assert.ok(over <= 0, `${path} overflow ${over}px at ${w}`);
+    }
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(url('kibarou.localhost', '/admin'));
+  assert.equal(await page.locator('#side').isVisible(), false);
+  await page.click('#menu-btn');
+  assert.equal(await page.getAttribute('#menu-btn', 'aria-expanded'), 'true');
+  assert.equal(await page.locator('#side a:has-text("Prospects")').isVisible(), true);
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('#side').isVisible(), false);
+  assert.deepEqual(errors, []); // includes any CSP violation
+});

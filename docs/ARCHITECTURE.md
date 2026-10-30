@@ -37,7 +37,7 @@
 3. **Lot 3 (livré)** : éditeur visuel par blocs (30 blocs, registre en liste blanche, JSON versionné, brouillon/publication, versions, aperçus Ordinateur/Tablette/Mobile).
 4. **Lot 4 (livré)** : module foncier complet (photos, documents privés, localisations, lotissements/parcelles, fiche PDF, QR codes) + services BTP + réalisations. *Reste du §10.5/§11 : formulaires de demande et de devis → lot 5 (CRM).*
 5. **Lot 5 (livré)** : CRM (prospects, notes, historique, affectation, visites), formulaire de demande (informations / visite / rappel / devis / partenariat), constructeur de formulaires, antispam, notifications e-mail, export CSV.
-6. Lot 6 : design (taste-skill / Impeccable), site Kibarou, SEO/sitemap.
+6. **Lot 6 (livré)** : design — site public « split stage » (taste-skill), administration « Operate » (Impeccable). Voir `docs/DESIGN.md`. *Reste : photographies réelles, SEO/sitemap déjà faits au lot 2.*
 7. Lot 7 : installateur cPanel, sauvegardes, documentation de déploiement, campagne E2E complète.
 
 ## Hors périmètre actuel (non fait)
@@ -85,3 +85,11 @@ Tout ce qui figure aux lots 2 à 7. Le logo officiel est dans `public/assets/ima
 - **Icônes Lucide** (licence ISC, `app/Blocks/icons/`) : 40 icônes locales inlinées côté serveur (aucun CDN, compatible CSP).
 - **Page d'accueil** : réglage `home_page` (identifiant d'une page publiée avec blocs) ; sinon accueil par défaut.
 - Limites : seules les **pages** utilisent l'éditeur (pas les articles) ; le glisser-déposer a des boutons ↑/↓ de secours mais les blocs ne se déplacent pas hors de leur conteneur avec ↑/↓ (utiliser le glisser-déposer) ; choix d'image parmi les médias déjà téléversés (pas de téléversement dans l'éditeur) ; pas d'annuler/rétablir ; pas d'édition simultanée (dernier enregistrement gagnant) ; le rendu public n'est pas mis en cache ; hero et sections ne sont pas pleine largeur tant que le design (lot 6) n'est pas fait.
+
+## Décisions du lot 6
+- **Deux feuilles de style séparées** : `site.css` (public) et `admin.css` (administration, connexion, plateforme) ; `blocks.css` est partagé (blocs et éditeur) et utilise des requêtes de conteneur. Le layout choisit selon `$public`.
+- **Polices hébergées localement** (Literata, IBM Plex Sans) : la CSP `style-src 'self'` interdit Google Fonts. Licences OFL dans `public/assets/fonts/`.
+- **Aucun script ni style en ligne** : le drapeau « JS actif » est remplacé par `@media (scripting: enabled)` ; la CSP a d'ailleurs bloqué ma première version en ligne, ce qui a prouvé qu'elle fonctionne.
+- **Navigation par défaut** construite d'après ce que le site possède (« À propos » seulement si la page existe).
+- `Page::render` fournit aux vues les permissions de l'utilisateur sur le site courant (`Rbac::permissions`) pour masquer les liens inaccessibles ; le serveur reste l'autorité (403).
+- `fcfa()` utilise l'espace insécable classique : la police n'a pas de glyphe pour l'espace fine insécable.

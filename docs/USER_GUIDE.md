@@ -16,3 +16,6 @@
 - Le texte est du texte simple : le HTML saisi s'affiche tel quel, il n'est jamais interprété.
 - Pour utiliser une page comme **accueil** : Réglages → « Page d'accueil » → identifiant de la page (elle doit être publiée).
 - Blocs « Terrain vedette », « Galerie immobilière » : saisissez la **référence** du terrain publié. « Galerie de chantiers », « Présentation d'un projet » : l'**identifiant** (adresse) de la réalisation publiée.
+
+## Photos de l'accueil
+L'accueil affiche trois scènes dessinées (terrain, chantier, bâtiment). Pour les remplacer par vos photographies : ajoutez-les dans **Médias**, puis **Réglages → Accueil, photo « Terrain / Chantier / Bâtiment »**. Utilisez des images à votre nom ou dont vous avez les droits ; une photo d'un autre chantier ne doit pas être présentée comme une réalisation de l'entreprise.

@@ -24,6 +24,7 @@ return function (Router $r): void {
     $r->get('/actualites', [PageController::class, 'posts']);
     $r->get('/actualites/{slug}', [PageController::class, 'post']);
     $r->get('/terrains', [LandController::class, 'index']);
+    $r->get('/api/terrains/compte', [LandController::class, 'count']);
     $r->get('/terrains/{slug}', [LandController::class, 'show']);
     $r->get('/terrains/{slug}/fiche.pdf', [LandController::class, 'pdf']);
     $r->get('/terrains/{slug}/documents/{doc}', [LandController::class, 'document']);

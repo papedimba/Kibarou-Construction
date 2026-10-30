@@ -31,8 +31,8 @@
     <tr>
       <td><?= e($docTypes[$d['type']] ?? $d['type']) ?></td><td><?= e($d['doc_date'] ?? '—') ?></td>
       <td><a href="/admin/terrains/<?= (int) $land['id'] ?>/documents/<?= (int) $d['id'] ?>"><?= e($d['original_name']) ?></a></td>
-      <td><?= $d['visibility'] === 'public' ? 'Public' : 'Privé' ?></td>
-      <td><?= $d['verification'] === 'verified' ? 'Vérifié' : 'Non vérifié' ?></td>
+      <td><?= badge($d['visibility'] === 'public' ? 'active' : 'inactive', $d['visibility'] === 'public' ? 'Public' : 'Privé') ?></td>
+      <td><?= badge($d['verification']) ?></td>
       <td>
         <form method="post" action="/admin/terrains/<?= (int) $land['id'] ?>/documents/<?= (int) $d['id'] ?>/verify" class="inline"><?= csrf_field($csrf) ?>
           <input type="hidden" name="verification" value="<?= $d['verification'] === 'verified' ? 'unverified' : 'verified' ?>">

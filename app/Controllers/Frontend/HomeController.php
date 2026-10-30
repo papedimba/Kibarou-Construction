@@ -5,11 +5,13 @@ namespace App\Controllers\Frontend;
 
 use App\Core\{Page, Request, Response};
 use App\Blocks\BlockRenderer;
-use App\Repositories\{LandRepository, PageRepository, SettingsRepository};
+use App\Multisite\TenantContext;
+use App\Repositories\{LandRepository, MediaRepository, PageRepository, ProjectRepository, ServiceRepository, SettingsRepository};
+use App\Services\AntiSpam;
 
 final class HomeController
 {
-    public function __construct(private Page $page, private LandRepository $lands, private SettingsRepository $settings, private PageRepository $pages, private BlockRenderer $blocks)
+    public function __construct(private Page $page, private LandRepository $lands, private SettingsRepository $settings, private PageRepository $pages, private BlockRenderer $blocks, private ServiceRepository $services, private ProjectRepository $projects, private MediaRepository $media, private TenantContext $tenant, private AntiSpam $spam)
     {
     }
 
@@ -21,6 +23,17 @@ final class HomeController
         if ($row && ($html = $this->blocks->renderPage($row))) {
             return $this->page->render('frontend/content', ['item' => $row, 'blocksHtml' => $html, 'title' => $row['meta_title'] ?: $row['title'], 'metaDescription' => $row['meta_description']]);
         }
-        return $this->page->render('frontend/home', ['featured' => $this->lands->search(['sort' => 'recent'], true, 1, 3)['items']]);
+        $cfg = $this->settings->all();
+        $stage = [];
+        foreach ([1, 2, 3] as $n) { // optional photographs replace the drawn scenes
+            $m = ctype_digit($cfg["stage_$n"] ?? '') ? $this->media->find((int) $cfg["stage_$n"]) : null;
+            $stage[$n] = $m ? '/uploads/' . $this->tenant->id() . '/' . basename($m['filename']) : null;
+        }
+        return $this->page->render('frontend/home', [
+            'featured' => $this->lands->search(['sort' => 'recent'], true, 1, 4)['items'], 'cats' => $this->lands->categories(),
+            'services' => array_slice($this->services->all(true), 0, 6), 'projects' => array_slice($this->projects->all(true), 0, 3),
+            'stage' => $stage, 'spam' => $this->spam->fields(), 'types' => array_intersect_key(\App\Repositories\LeadRepository::TYPES, array_flip(['info', 'partnership', 'other'])),
+            'fullBleed' => true,
+        ]);
     }
 }

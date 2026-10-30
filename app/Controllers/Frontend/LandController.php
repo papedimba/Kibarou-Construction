@@ -41,6 +41,13 @@ final class LandController
         ]);
     }
 
+    /** Public live count for the home page search: how many published, still-sellable lands match. */
+    public function count(Request $req, array $p): Response
+    {
+        $f = array_intersect_key($req->query, array_flip(['max', 'category']));
+        return Response::json(['count' => $this->lands->search($f, true, 1, 1)['total']]);
+    }
+
     public function pdf(Request $req, array $p): Response
     {
         $land = $this->lands->findBySlug($p['slug']);

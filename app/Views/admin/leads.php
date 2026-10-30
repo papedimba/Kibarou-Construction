@@ -16,7 +16,7 @@
       <td><a href="/admin/prospects/<?= (int) $l['id'] ?>"><?= e($l['reference']) ?></a></td><td><?= e(substr($l['created_at'], 0, 10)) ?></td>
       <td><?= e($l['first_name'] . ' ' . $l['last_name']) ?><br><small><?= e($l['phone']) ?></small></td>
       <td><?= e($types[$l['type']] ?? $l['type']) ?></td><td><?= e($l['land_ref'] ? $l['land_ref'] . ' — ' . $l['land_title'] : ($l['service_title'] ?? '—')) ?></td>
-      <td><?= e($statuses[$l['status']] ?? $l['status']) ?></td><td><?= e($l['assignee'] ?? '—') ?></td>
+      <td><?= badge($l['status'], $statuses[$l['status']] ?? null) ?></td><td><?= e($l['assignee'] ?? '—') ?></td>
     </tr>
   <?php endforeach; ?>
   <?php if (!$r['items']): ?><tr><td colspan="7">Aucun prospect.</td></tr><?php endif; ?>

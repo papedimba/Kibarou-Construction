@@ -4,7 +4,7 @@
   <thead><tr><th>Nom</th><th>Adresse publique</th><th>Actif</th><th>Réponses</th><th></th></tr></thead>
   <tbody>
   <?php foreach ($items as $f): ?>
-    <tr><td><?= e($f['name']) ?></td><td>/f/<?= e($f['slug']) ?></td><td><?= $f['is_active'] ? 'Oui' : 'Non' ?></td><td><a href="/admin/formulaires/<?= (int) $f['id'] ?>/reponses"><?= (int) $f['submissions'] ?></a></td>
+    <tr><td><?= e($f['name']) ?></td><td>/f/<?= e($f['slug']) ?></td><td><?= badge($f['is_active'] ? 'active' : 'inactive') ?></td><td><a href="/admin/formulaires/<?= (int) $f['id'] ?>/reponses"><?= (int) $f['submissions'] ?></a></td>
     <td><a href="/admin/formulaires/<?= (int) $f['id'] ?>/edit">Modifier</a>
       <form method="post" action="/admin/formulaires/<?= (int) $f['id'] ?>/delete" class="inline"><?= csrf_field($csrf) ?><button class="danger">Supprimer</button></form></td></tr>
   <?php endforeach; ?>

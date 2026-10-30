@@ -384,4 +384,18 @@ final class BlocksTest extends DbTestCase
         $id = $this->page('alpha.test');
         $this->assertStringContainsString("/admin/pages/$id/editeur", $this->call('GET', '/admin/pages', 'alpha.test')->body);
     }
+
+    public function testHomeStageUsesConfiguredPhotoOfThisSiteOnly(): void
+    {
+        $this->login('alpha.test', 'admin@alpha.test');
+        $mine = $this->media($this->a);
+        $theirs = $this->media($this->b);
+        $file = $this->db->value('SELECT filename FROM media WHERE id = ?', [$mine]);
+        $this->assertStringContainsString('<svg', $this->call('GET', '/', 'alpha.test')->body); // drawn scene by default
+        $this->assertSame(422, $this->call('POST', '/admin/settings', 'alpha.test', ['theme' => 'corporate-premium', 'stage_1' => (string) $theirs])->status);
+        $this->call('POST', '/admin/settings', 'alpha.test', ['theme' => 'corporate-premium', 'stage_1' => (string) $mine]);
+        $home = $this->call('GET', '/', 'alpha.test')->body;
+        $this->assertStringContainsString("/uploads/{$this->a}/$file", $home);
+        $this->assertStringNotContainsString("/uploads/{$this->b}/", $home);
+    }
 }

@@ -282,9 +282,10 @@ final class CrmTest extends DbTestCase
         $this->makeLead($this->b);
         $this->asAdmin('alpha.test', 'alpha');
         $body = $this->call('GET', '/admin', 'alpha.test')->body;
-        $this->assertStringContainsString('<strong>2</strong> demandes commerciales', $body);
-        $this->assertStringContainsString('<strong>1</strong> demandes en attente', $body);
-        $this->assertStringContainsString('<strong>1</strong> demandes de devis', $body);
+        // each figure sits next to its label, so compare the pair, not just a number
+        $this->assertMatchesRegularExpression('#Demandes commerciales</span><b>2</b>#', $body);
+        $this->assertMatchesRegularExpression('#Demandes en attente</span><b>1</b>#', $body);
+        $this->assertMatchesRegularExpression('#Demandes de devis</span><b>1</b>#', $body);
     }
 
     public function testFormBuilderEndToEnd(): void

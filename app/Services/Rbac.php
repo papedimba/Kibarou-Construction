@@ -17,6 +17,15 @@ final class Rbac
             || (bool) $this->db->value('SELECT 1 FROM site_members WHERE user_id = ? AND site_id = ? LIMIT 1', [$user['id'], $siteId]);
     }
 
+    /** @return list<string> permission slugs held on this site (super admin: all) */
+    public function permissions(array $user, int $siteId): array
+    {
+        $sql = $user['is_super_admin']
+            ? 'SELECT slug FROM permissions'
+            : 'SELECT DISTINCT p.slug FROM site_members m JOIN role_permissions rp ON rp.role_id = m.role_id JOIN permissions p ON p.id = rp.permission_id WHERE m.user_id = ' . (int) $user['id'] . ' AND m.site_id = ' . (int) $siteId;
+        return array_column($this->db->all($sql), 'slug');
+    }
+
     /** Roles are per (user, site): the same user can be site_admin on A and editor on B. */
     public function can(array $user, int $siteId, string $permission): bool
     {
