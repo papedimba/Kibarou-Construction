@@ -14,3 +14,14 @@ Lot 5 : antispam à 3 couches (champ piège, jeton signé, plafond par IP) + CSR
 Lot 3 : éditeur de blocs — liste blanche des types et des champs, URL restreintes (pas de `javascript:`/`data:`/`//`), ids d'images vérifiés par site, profondeur/nombre bornés, échappement systématique, aucun style/script en ligne, embeds limités par CSP, JSON corrompu inoffensif, endpoints JSON soumis au CSRF (`_csrf` dans le corps) et au RBAC `content.manage`, isolation des pages (404 inter-sites), tests de mutation sur URL et images.
 
 Non encore implémenté : documents privés, journal d'activité global (table prête), 2FA.
+
+## Lot 7 : exploitation et déploiement
+- **Installateur** : ne fonctionne que si `.env` et `storage/installed.lock` sont absents, jeton CSRF propre, supprime `install.php` en cas de succès, n'écrit jamais le mot de passe dans un message d'erreur, `.env` en mode 600, `APP_DEBUG=0`.
+- **Apache** (testé) : `.htaccess` racine et `public/` interdisent `.env`, `app/`, `storage/`, `vendor/`, `database/`, `docs/`, `bin/`, tout script PHP sauf `index.php`/`install.php`, et l'exécution de scripts dans `public/uploads/`. En-têtes : CSP stricte, `Strict-Transport-Security` en HTTPS.
+- **Sauvegardes** : archive zippée (droits 640) hors web ; téléchargement réservé au super administrateur, nom validé par expression stricte ; restauration validant d'abord *toute* l'archive (refus des `..`, chemins absolus, caractères de contrôle, `.php`, `.htaccess`, dossiers non prévus).
+- **Journal d'activité** : chaque action de modification réussie d'un utilisateur connecté (qui, site, action, IP), sans contenu saisi. Visible par les administrateurs du site.
+- **Utilisateurs** : un administrateur de site ne peut ni modifier un compte partagé avec un autre site, ni retirer le dernier administrateur, ni créer de super administrateur.
+- **Suppression d'un site** : en deux temps (confirmation par saisie de l'identifiant, puis purge en ligne de commande), réservée au super administrateur.
+
+### Liste de contrôle avant ouverture
+`php bin/console.php doctor` sans `[FAIL]` ni `[WARN]` · `https://domaine/.env` → 403 · `https://domaine/install.php` → 404 · HTTPS actif et redirection en place · mots de passe de développement remplacés · cron de sauvegarde actif et **une restauration testée** · `APP_KEY` défini.

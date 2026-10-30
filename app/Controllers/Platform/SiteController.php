@@ -14,7 +14,9 @@ final class SiteController
 
     public function index(Request $req, array $p): Response
     {
-        $sites = $this->db->all('SELECT s.*, (SELECT GROUP_CONCAT(host SEPARATOR ", ") FROM domains d WHERE d.site_id = s.id) AS hosts FROM sites s ORDER BY s.id');
+        $sites = $this->db->all('SELECT s.*, (SELECT GROUP_CONCAT(host SEPARATOR ", ") FROM domains d WHERE d.site_id = s.id) AS hosts,
+            (SELECT COUNT(*) FROM land_properties x WHERE x.site_id = s.id) AS lands, (SELECT COUNT(*) FROM leads x WHERE x.site_id = s.id) AS leads,
+            (SELECT COUNT(*) FROM pages x WHERE x.site_id = s.id) AS pages FROM sites s ORDER BY s.id');
         return $this->page->render('platform/sites', ['sites' => $sites]);
     }
 
@@ -48,6 +50,19 @@ final class SiteController
         if (in_array($status, ['active', 'suspended'], true)) {
             $this->db->run('UPDATE sites SET status = ? WHERE id = ?', [$status, (int) $p['id']]);
             $this->page->flash('Statut mis à jour.');
+        }
+        return Response::redirect('/platform/sites');
+    }
+
+    /** Step 1 of deletion: marks the site deleted (404 for visitors, data kept). Needs the slug typed back. Purge is CLI-only. */
+    public function delete(Request $req, array $p): Response
+    {
+        $site = $this->db->one('SELECT id, slug FROM sites WHERE id = ?', [(int) $p['id']]);
+        if (!$site || !hash_equals($site['slug'], (string) $req->input('confirm_slug'))) {
+            $this->page->flash('Suppression annulée : l\'identifiant saisi ne correspond pas.');
+        } else {
+            $this->db->run("UPDATE sites SET status = 'deleted' WHERE id = ?", [$site['id']]);
+            $this->page->flash('Site supprimé (données conservées). Purge définitive : php bin/console.php site:purge ' . $site['slug'] . ' --yes');
         }
         return Response::redirect('/platform/sites');
     }

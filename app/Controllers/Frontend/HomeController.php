@@ -34,6 +34,11 @@ final class HomeController
             'services' => array_slice($this->services->all(true), 0, 6), 'projects' => array_slice($this->projects->all(true), 0, 3),
             'stage' => $stage, 'spam' => $this->spam->fields(), 'types' => array_intersect_key(\App\Repositories\LeadRepository::TYPES, array_flip(['info', 'partnership', 'other'])),
             'fullBleed' => true,
+            'jsonld' => array_filter([
+                '@context' => 'https://schema.org', '@type' => 'Organization', 'name' => $this->tenant->site()['name'], 'url' => $base = ($req->secure ? 'https' : 'http') . '://' . $req->host,
+                'logo' => !empty($cfg['logo_url']) ? $base . $cfg['logo_url'] : null, 'telephone' => $cfg['phone'] ?? null, 'email' => $cfg['email'] ?? null,
+                'slogan' => $cfg['tagline'] ?? null, 'address' => !empty($cfg['address']) ? ['@type' => 'PostalAddress', 'streetAddress' => $cfg['address'], 'addressCountry' => 'CI'] : null, 'areaServed' => 'CI',
+            ]),
         ]);
     }
 }

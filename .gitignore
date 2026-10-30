@@ -15,3 +15,4 @@
 /storage/private/*
 !/storage/private/.gitkeep
 .taste-skill/
+/dist/

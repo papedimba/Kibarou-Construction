@@ -22,6 +22,7 @@ $nav = $headerMenu ?: ($navDefault ?? []);
 <meta property="og:title" content="<?= e($pageTitle) ?>">
 <meta property="og:url" content="<?= e($canonical ?? '') ?>">
 <?php if ($desc !== ''): ?><meta property="og:description" content="<?= e($desc) ?>"><?php endif; ?>
+<?php if (!empty($jsonld)): ?><script type="application/ld+json"><?= json_encode($jsonld, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) ?></script><?php endif; ?>
 <link rel="preload" href="/assets/fonts/literata-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <?php endif; ?>
 <?php if (!$public || !empty($preview)): ?><meta name="robots" content="noindex"><?php endif; ?>
@@ -80,12 +81,12 @@ $perms = $perms ?? []; $path = $currentPath ?? '';
 $can = fn(string $p) => in_array('*', $perms, true) || in_array($p, $perms, true);
 $groups = $site ? [
     ['', [['Tableau de bord', '/admin', 'layout-dashboard', null]]],
-    ['Gestion foncière', [['Terrains', '/admin/terrains', 'map-pin', 'land.view'], ['Lotissements', '/admin/lotissements', 'layers', 'land.manage'], ['Localisations', '/admin/localisations', 'map', 'land.manage']]],
+    ['Gestion foncière', [['Terrains', '/admin/terrains', 'map-pin', 'land.view'], ['Lotissements', '/admin/lotissements', 'layers', 'land.manage'], ['Catégories', '/admin/categories', 'list', 'land.manage'], ['Localisations', '/admin/localisations', 'map', 'land.manage']]],
     ['BTP', [['Services', '/admin/services', 'hammer', 'btp.manage'], ['Réalisations', '/admin/realisations', 'hard-hat', 'btp.manage']]],
     ['CRM', [['Prospects', '/admin/prospects', 'users', 'lead.view'], ['Visites', '/admin/visites', 'calendar', 'lead.view']]],
     ['Contenu', [['Pages', '/admin/pages', 'file-text', 'content.manage'], ['Articles', '/admin/articles', 'clipboard-list', 'content.manage'], ['Médias', '/admin/media', 'images', 'content.manage'], ['Menus', '/admin/menus', 'menu', 'content.manage'], ['Formulaires', '/admin/formulaires', 'message-circle', 'content.manage']]],
-    ['Configuration', [['Réglages', '/admin/settings', 'settings', 'site.settings']]],
-] : [['', [['Sites', '/platform/sites', 'layout-dashboard', null]]]];
+    ['Configuration', [['Réglages', '/admin/settings', 'settings', 'site.settings'], ['Utilisateurs', '/admin/utilisateurs', 'users', 'users.manage'], ['Journal', '/admin/journal', 'clipboard-list', 'site.settings']]],
+] : [['', [['Sites', '/platform/sites', 'layout-dashboard', null], ['Sauvegardes', '/platform/backups', 'briefcase', null]]]];
 $current = fn(string $u) => $u === '/admin' ? $path === '/admin' : ($path === $u || str_starts_with($path, $u . '/'));
 ?>
 <a class="skip" href="#contenu">Aller au contenu</a>

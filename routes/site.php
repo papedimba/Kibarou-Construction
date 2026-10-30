@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 use App\Controllers\AuthController;
-use App\Controllers\Admin\{ContentController, EditorController, DashboardController, DevelopmentController as AdminDev, LandController as AdminLand, LandMediaController, LocationController, MediaController, MenuController, AppointmentController, FormController as AdminForm, LeadController as AdminLead, ProjectController as AdminProject, ServiceController as AdminService, SettingsController};
+use App\Controllers\Admin\{ContentController, EditorController, DashboardController, DevelopmentController as AdminDev, LandController as AdminLand, LandMediaController, LocationController, CategoryController, JournalController, MediaController, MenuController, UserController, AppointmentController, FormController as AdminForm, LeadController as AdminLead, ProjectController as AdminProject, ServiceController as AdminService, SettingsController};
 use App\Controllers\Frontend\{DevelopmentController, FormController, HomeController, LandController, LeadController, PageController, ProjectController, SeoController, ServiceController};
 use App\Core\Router;
 use App\Middleware\{AuthMiddleware, PermissionMiddleware};
@@ -16,6 +16,7 @@ return function (Router $r): void {
     $leadView = [...$member, PermissionMiddleware::class . ':lead.view'];
     $leadManage = [...$member, PermissionMiddleware::class . ':lead.manage'];
     $content = [...$member, PermissionMiddleware::class . ':content.manage'];
+    $usersPerm = [...$member, PermissionMiddleware::class . ':users.manage'];
     $settings = [...$member, PermissionMiddleware::class . ':site.settings'];
 
     $r->get('/', [HomeController::class, 'index']);
@@ -86,6 +87,10 @@ return function (Router $r): void {
     $r->get('/admin/terrains/{id}/documents/{doc}', [LandMediaController::class, 'downloadDocument'], $manage);
     $r->get('/admin/terrains/{id}/qr.{format}', [LandMediaController::class, 'qr'], $manage);
     $r->get('/admin/terrains/{id}/fiche.pdf', [LandMediaController::class, 'pdf'], $manage);
+    $r->get('/admin/categories', [CategoryController::class, 'index'], $manage);
+    $r->post('/admin/categories', [CategoryController::class, 'store'], $manage);
+    $r->post('/admin/categories/{id}/delete', [CategoryController::class, 'destroy'], $manage);
+    $r->get('/admin/journal', [JournalController::class, 'index'], $settings);
     $r->get('/admin/localisations', [LocationController::class, 'index'], $manage);
     $r->post('/admin/localisations', [LocationController::class, 'store'], $manage);
     $r->post('/admin/localisations/{id}/delete', [LocationController::class, 'destroy'], $manage);
@@ -126,6 +131,12 @@ return function (Router $r): void {
     $r->post('/admin/formulaires/{id}', [AdminForm::class, 'update'], $content);
     $r->post('/admin/formulaires/{id}/delete', [AdminForm::class, 'destroy'], $content);
     $r->get('/admin/formulaires/{id}/reponses', [AdminForm::class, 'submissions'], $content);
+
+    $r->get('/admin/utilisateurs', [UserController::class, 'index'], $usersPerm);
+    $r->post('/admin/utilisateurs', [UserController::class, 'add'], $usersPerm);
+    $r->post('/admin/utilisateurs/{id}/role', [UserController::class, 'role'], $usersPerm);
+    $r->post('/admin/utilisateurs/{id}/retirer', [UserController::class, 'remove'], $usersPerm);
+    $r->post('/admin/utilisateurs/{id}/mot-de-passe', [UserController::class, 'password'], $usersPerm);
 
     // Must stay last: single-segment catch-all for CMS pages.
     $r->get('/{slug}', [PageController::class, 'show']);

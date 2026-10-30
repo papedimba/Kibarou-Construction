@@ -93,3 +93,11 @@ Tout ce qui figure aux lots 2 à 7. Le logo officiel est dans `public/assets/ima
 - **Navigation par défaut** construite d'après ce que le site possède (« À propos » seulement si la page existe).
 - `Page::render` fournit aux vues les permissions de l'utilisateur sur le site courant (`Rbac::permissions`) pour masquer les liens inaccessibles ; le serveur reste l'autorité (403).
 - `fcfa()` utilise l'espace insécable classique : la police n'a pas de glyphe pour l'espace fine insécable.
+
+## Décisions du lot 7
+- **Installateur web auto-verrouillé** plutôt qu'un script CLI seul : sur cPanel, beaucoup n'ont pas de shell. Garde-fou : refus si `.env` ou verrou présents ; suppression de `install.php`.
+- **Sauvegarde sans `mysqldump`** : export SQL en PHP (une instruction par ligne, valeurs échappées par `PDO::quote`) + zip ; restauration en ligne de commande uniquement (opération destructive, jamais exposée au web).
+- **Deux `.htaccess`** : `public/` (cas recommandé, domaine pointé sur `public/`) et racine (cas `public_html` imposé). Le test Apache a trouvé un défaut : ma règle « seuls `index.php`/`install.php` sont des scripts publics » comparait l'URL d'origine et se bloquait elle-même après la réécriture interne (403 partout) ; elle compare désormais le chemin de la cible.
+- **Suppression de site en deux temps** (statut `deleted` puis purge CLI) ; la purge supprime explicitement les lignes par `site_id` car les clés étrangères composites interdisent un ordre de cascade simple.
+- **Journal d'activité par middleware** : un seul point de code, aucune modification des contrôleurs, aucun contenu stocké.
+- **Archive de livraison** : `bin/build-release.sh` (vendor de production inclus, car un hébergement mutualisé n'a souvent pas Composer).

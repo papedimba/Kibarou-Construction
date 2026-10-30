@@ -37,6 +37,13 @@ final class LandController
             'documents' => $this->docs->forLand((int) $land['id'], true), 'docTypes' => LandDocumentRepository::TYPES,
             'location' => $this->locations->label($land['location_id'] ? (int) $land['location_id'] : null),
             'similar' => $similar, 'covers' => $this->images->covers(array_map('intval', array_column($similar, 'id'))),
+            'jsonld' => array_filter([
+                '@context' => 'https://schema.org', '@type' => 'Product', 'name' => $land['title'], 'sku' => $land['reference'], 'description' => $land['description'] ? mb_substr($land['description'], 0, 300) : null,
+                'url' => ($req->secure ? 'https' : 'http') . '://' . $req->host . '/terrains/' . $land['slug'],
+                'image' => ($imgs = $this->images->forOwner((int) $land['id'])) ? ($req->secure ? 'https' : 'http') . '://' . $req->host . '/uploads/' . (int) $land['site_id'] . '/' . $imgs[0]['filename'] : null,
+                'offers' => ['@type' => 'Offer', 'price' => (string) $land['price_xof'], 'priceCurrency' => 'XOF',
+                    'availability' => 'https://schema.org/' . ['available' => 'InStock', 'reserving' => 'LimitedAvailability', 'reserved' => 'OutOfStock', 'sold' => 'SoldOut', 'unavailable' => 'Discontinued'][$land['status']]],
+            ]),
             'mapUrl' => $hasGps ? sprintf('https://www.openstreetmap.org/?mlat=%s&mlon=%s#map=16/%s/%s', $land['latitude'], $land['longitude'], $land['latitude'], $land['longitude']) : null,
         ]);
     }

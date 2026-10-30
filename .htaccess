@@ -1,0 +1,19 @@
+# Racine du projet. À utiliser quand le dossier public/ ne peut PAS être défini comme racine web (cPanel : public_html).
+# Si vous pouvez pointer le domaine sur public/, ce fichier n'est pas nécessaire (public/.htaccess suffit).
+Options -Indexes -MultiViews
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Jamais servi : code, configuration, données, sauvegardes, dépendances, documentation
+  RewriteRule ^(app|bin|config|database|docs|routes|storage|tests|vendor|dist)(/|$) - [F,L]
+  RewriteRule ^(composer\.(json|lock)|phpunit\.xml|README\.md|PRODUCT\.md)$ - [F,L]
+  # Fichiers cachés (.env, .git…), sauf .well-known (validation SSL)
+  RewriteRule (^|/)\.(?!well-known/) - [F,L]
+
+  # Fichiers statiques réels de public/
+  RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f
+  RewriteRule ^(.*)$ public/$1 [L]
+
+  # Tout le reste passe par le routeur
+  RewriteRule ^ public/index.php [L]
+</IfModule>
