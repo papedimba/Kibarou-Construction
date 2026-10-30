@@ -87,11 +87,9 @@ final class DocumentService
         ]);
     }
 
-    /** Remove the files of every document of a land (rows go with the land via ON DELETE CASCADE). */
-    public function purgeLand(int $landId): void
+    /** @return list<string> absolute paths of every document file of a land */
+    public function pathsForLand(int $landId): array
     {
-        foreach ($this->docs->forLand($landId) as $d) {
-            @unlink($this->path($d));
-        }
+        return array_map(fn($d) => $this->path($d), $this->docs->forLand($landId));
     }
 }

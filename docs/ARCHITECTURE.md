@@ -36,7 +36,7 @@
 2. **Lot 2 (livré)** : CMS — pages avec révisions, articles, médias, menus, redirections 301, réglages, SEO (meta, canonical, Open Graph, sitemap.xml, robots.txt), 3 thèmes sélectionnables.
 3. Lot 3 : éditeur de blocs (BlockRegistry en liste blanche, JSON versionné).
 4. **Lot 4 (livré)** : module foncier complet (photos, documents privés, localisations, lotissements/parcelles, fiche PDF, QR codes) + services BTP + réalisations. *Reste du §10.5/§11 : formulaires de demande et de devis → lot 5 (CRM).*
-5. Lot 5 : CRM, formulaires, antispam, export CSV.
+5. **Lot 5 (livré)** : CRM (prospects, notes, historique, affectation, visites), formulaire de demande (informations / visite / rappel / devis / partenariat), constructeur de formulaires, antispam, notifications e-mail, export CSV.
 6. Lot 6 : design (taste-skill / Impeccable), site Kibarou, SEO/sitemap.
 7. Lot 7 : installateur cPanel, sauvegardes, documentation de déploiement, campagne E2E complète.
 
@@ -61,3 +61,14 @@ Tout ce qui figure aux lots 2 à 7. Le logo officiel est dans `public/assets/ima
 - **Services BTP** : aucun pré-rempli ; créés *inactifs*, invisibles du public jusqu'à activation. Réalisations : aucune pré-remplie.
 - **Parcelles** : champ `geometry` réservé au futur plan interactif (non utilisé).
 - Limites : carte = lien OpenStreetMap (pas de carte intégrée avant le lot design) ; galeries sans réordonnancement ; pas de photos par parcelle ; la suppression d'un média encore utilisé par un service est refusée par la base.
+
+## Décisions du lot 5
+- **Un seul formulaire de demande** (`/contact`) dont le contexte vient de slugs résolus *dans le site courant* (`?terrain=…`, `?service=…`) : un terrain d'un autre site, non publié, ou un service inactif est refusé. Le type de demande autorisé dépend du contexte.
+- **Antispam sans service externe** : champ piège, jeton horodaté signé HMAC (`APP_KEY`) valable 3 s à 6 h, plafond de 5 demandes/heure/IP (prospects + formulaires), CSRF. Un test de mutation a confirmé que les tests échouent si ces protections sont retirées.
+- **Historique** : toute modification (statut, affectation, note, visite) passe par `LeadService` et laisse une trace ; l'affectation n'est possible que vers un membre du même site.
+- **Intégrité commerciale** : un terrain ou un service lié à des prospects ne peut pas être supprimé (FK) — message explicite, suggestion « Indisponible » / désactiver. Les fichiers ne sont supprimés qu'après la suppression en base réussie.
+- **Export CSV** : UTF-8 avec BOM, séparateur `;`, filtres appliqués, cellules commençant par `= + - @` neutralisées contre l'injection de formules (limite 5000 lignes).
+- **Notifications** : `MAIL_DRIVER=log` (dev/tests, `storage/logs/mail.log`) ou `mail()` PHP (cPanel). Un échec d'envoi ne perd jamais la demande (déjà enregistrée). En-têtes protégés contre l'injection CRLF.
+- **Constructeur de formulaires** : un champ par ligne (`Libellé | type | obligatoire | options`), validation serveur stricte, réponses stockées par libellé. Interface visuelle prévue au lot design.
+- **Données personnelles** : adresse IP et consentement horodaté conservés avec chaque demande (antispam / preuve). Politique de conservation et page de confidentialité à définir avec le client.
+- Limites : pas de réservation en ligne ni paiement (hors périmètre V1) ; pas de relance automatique ; notifications seulement vers l'e-mail public du site ; prospects non dédoublonnés.

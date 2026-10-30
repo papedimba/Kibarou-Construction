@@ -10,3 +10,5 @@ catalogue (filtres/tri/statuts), CRUD terrains, création de site depuis /platfo
 Lot 2 : 15 tests CMS (`tests/Feature/CmsTest.php`) — isolation pages/médias, XSS, slugs réservés, révisions, sitemap, redirections, réglages, upload piégé, rôle éditeur — et un scénario Playwright (page, vrai téléversement multipart, thème, sitemap).
 
 Lot 4 : 16 tests (`tests/Feature/LandBtpTest.php`) — filtre hiérarchique, documents privés/publics/vérifiés, IDOR documents/QR/PDF, photos, similaires, lotissements/parcelles, services inactifs, réalisations, rôles par module — et 2 scénarios Playwright (parcours foncier complet avec vrais téléversements, logo officiel affiché).
+
+Lot 5 : 22 tests (`tests/Feature/CrmTest.php`) et 1 scénario Playwright (visiteur → administration → CSV → formulaire personnalisé, avec nettoyage de ses données). L'E2E a révélé une régression d'affichage mobile (menu à 5 liens sans retour à la ligne), corrigée.

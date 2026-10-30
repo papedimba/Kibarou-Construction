@@ -1,7 +1,7 @@
 # KIBAROU CMS
 
 CMS multisite en PHP natif (8.2+), MySQL/MariaDB, sans framework. Premier site : KIBAROU CONSTRUCTION.
-État : **Lots 1-2-4** (multisite, auth/RBAC, CMS, module foncier complet, BTP, réalisations ; lot 3 = éditeur de blocs à venir). Périmètre et plan : `docs/ARCHITECTURE.md`.
+État : **Lots 1-2-4-5** (multisite, auth/RBAC, CMS, foncier, BTP, réalisations, CRM et formulaires ; lot 3 = éditeur de blocs à venir). Périmètre et plan : `docs/ARCHITECTURE.md`.
 
 ## Démarrage local
 ```bash

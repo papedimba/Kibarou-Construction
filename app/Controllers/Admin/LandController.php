@@ -70,10 +70,20 @@ final class LandController
 
     public function destroy(Request $req, array $p): Response
     {
-        $this->docs->purgeLand((int) $p['id']); // files first: the DB cascade only removes rows
-        if (!$this->lands->delete((int) $p['id'])) {
-            return $this->notFound();
+        $id = (int) $p['id'];
+        $files = $this->docs->pathsForLand($id); // the DB cascade removes the rows, so list the files first
+        try {
+            if (!$this->lands->delete($id)) {
+                return $this->notFound();
+            }
+        } catch (\PDOException $e) {
+            if ($e->getCode() !== '23000') {
+                throw $e;
+            }
+            $this->page->flash('Suppression impossible : des demandes de prospects sont liées à ce terrain. Passez-le en « Indisponible ».');
+            return Response::redirect('/admin/terrains');
         }
+        array_map('unlink', array_filter($files, 'is_file'));
         $this->page->flash('Terrain supprimé.');
         return Response::redirect('/admin/terrains');
     }

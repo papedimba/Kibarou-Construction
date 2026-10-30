@@ -43,8 +43,16 @@ final class ServiceController
 
     public function destroy(Request $req, array $p): Response
     {
-        if (!$this->services->delete((int) $p['id'])) {
-            return $this->notFound();
+        try {
+            if (!$this->services->delete((int) $p['id'])) {
+                return $this->notFound();
+            }
+        } catch (\PDOException $e) {
+            if ($e->getCode() !== '23000') {
+                throw $e;
+            }
+            $this->page->flash('Suppression impossible : des demandes de devis sont liées à ce service. Désactivez-le.');
+            return Response::redirect('/admin/services');
         }
         $this->page->flash('Service supprimé.');
         return Response::redirect('/admin/services');

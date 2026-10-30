@@ -22,6 +22,15 @@
 <?php endforeach; ?>
 </ul>
 <?php endif; ?>
+<h2>Ce terrain vous intéresse ?</h2>
+<p>
+  <a class="btn" href="/contact?terrain=<?= e($land['slug']) ?>&amp;type=info">Demander des informations</a>
+  <a class="btn" href="/contact?terrain=<?= e($land['slug']) ?>&amp;type=visit">Programmer une visite</a>
+  <a class="btn" href="/contact?terrain=<?= e($land['slug']) ?>&amp;type=callback">Être contacté</a>
+  <?php $wa = preg_replace('/\D/', '', $settings['whatsapp'] ?? ''); if ($wa !== ''): ?>
+    <a class="btn" rel="noopener" href="https://wa.me/<?= e($wa) ?>?text=<?= e(rawurlencode("Bonjour, je souhaite des informations sur le terrain {$land['reference']} : " . ($canonical ?? ''))) ?>">Contacter sur WhatsApp</a>
+  <?php endif; ?>
+</p>
 <p><a class="btn" href="/terrains/<?= e($land['slug']) ?>/fiche.pdf">Télécharger la fiche PDF</a></p>
 <?php if ($similar): ?>
 <h2>Terrains similaires</h2>

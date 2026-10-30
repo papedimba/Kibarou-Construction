@@ -9,4 +9,6 @@ Lot 2 : uploads contrôlés par contenu (MIME réel, SVG refusé, 5 Mo, nom alé
 
 Lot 4 : documents fonciers hors web root, servis par contrôleur (IDOR testé), vérification jamais présumée, `realpath` pour le logo du PDF, QR/PDF scopés au site, localisations/catégories d'un autre site refusées, services désactivés par défaut.
 
-Non encore implémenté : documents privés, antispam des formulaires, journal d'activité (table prête), 2FA.
+Lot 5 : antispam à 3 couches (champ piège, jeton signé, plafond par IP) + CSRF, validation serveur des demandes et des formulaires, isolation des prospects testée (lecture, statut, note, visite, suppression, export), affectation limitée aux membres du site, export CSV anti-injection de formules, e-mails protégés contre l'injection d'en-têtes. `APP_KEY` obligatoire en production.
+
+Non encore implémenté : documents privés, journal d'activité global (table prête), 2FA.

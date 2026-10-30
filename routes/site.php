@@ -2,8 +2,8 @@
 declare(strict_types=1);
 
 use App\Controllers\AuthController;
-use App\Controllers\Admin\{ContentController, DashboardController, DevelopmentController as AdminDev, LandController as AdminLand, LandMediaController, LocationController, MediaController, MenuController, ProjectController as AdminProject, ServiceController as AdminService, SettingsController};
-use App\Controllers\Frontend\{DevelopmentController, HomeController, LandController, PageController, ProjectController, SeoController, ServiceController};
+use App\Controllers\Admin\{ContentController, DashboardController, DevelopmentController as AdminDev, LandController as AdminLand, LandMediaController, LocationController, MediaController, MenuController, AppointmentController, FormController as AdminForm, LeadController as AdminLead, ProjectController as AdminProject, ServiceController as AdminService, SettingsController};
+use App\Controllers\Frontend\{DevelopmentController, FormController, HomeController, LandController, LeadController, PageController, ProjectController, SeoController, ServiceController};
 use App\Core\Router;
 use App\Middleware\{AuthMiddleware, PermissionMiddleware};
 
@@ -13,6 +13,8 @@ return function (Router $r): void {
     $manage = [...$member, PermissionMiddleware::class . ':land.manage'];
 
     $btp = [...$member, PermissionMiddleware::class . ':btp.manage'];
+    $leadView = [...$member, PermissionMiddleware::class . ':lead.view'];
+    $leadManage = [...$member, PermissionMiddleware::class . ':lead.manage'];
     $content = [...$member, PermissionMiddleware::class . ':content.manage'];
     $settings = [...$member, PermissionMiddleware::class . ':site.settings'];
 
@@ -25,6 +27,11 @@ return function (Router $r): void {
     $r->get('/terrains/{slug}', [LandController::class, 'show']);
     $r->get('/terrains/{slug}/fiche.pdf', [LandController::class, 'pdf']);
     $r->get('/terrains/{slug}/documents/{doc}', [LandController::class, 'document']);
+    $r->get('/contact', [LeadController::class, 'contact']);
+    $r->post('/contact', [LeadController::class, 'submit']);
+    $r->get('/demandes/merci', [LeadController::class, 'thanks']);
+    $r->get('/f/{slug}', [FormController::class, 'show']);
+    $r->post('/f/{slug}', [FormController::class, 'submit']);
     $r->get('/services', [ServiceController::class, 'index']);
     $r->get('/services/{slug}', [ServiceController::class, 'show']);
     $r->get('/realisations', [ProjectController::class, 'index']);
@@ -95,6 +102,24 @@ return function (Router $r): void {
     }
     $r->post('/admin/realisations/{id}/images', [AdminProject::class, 'addImage'], $btp);
     $r->post('/admin/realisations/{id}/images/{img}/delete', [AdminProject::class, 'removeImage'], $btp);
+
+    $r->get('/admin/prospects', [AdminLead::class, 'index'], $leadView);
+    $r->get('/admin/prospects/export.csv', [AdminLead::class, 'export'], $leadView);
+    $r->get('/admin/prospects/{id}', [AdminLead::class, 'show'], $leadView);
+    $r->post('/admin/prospects/{id}/status', [AdminLead::class, 'status'], $leadManage);
+    $r->post('/admin/prospects/{id}/assign', [AdminLead::class, 'assign'], $leadManage);
+    $r->post('/admin/prospects/{id}/notes', [AdminLead::class, 'note'], $leadManage);
+    $r->post('/admin/prospects/{id}/visites', [AdminLead::class, 'visit'], $leadManage);
+    $r->post('/admin/prospects/{id}/delete', [AdminLead::class, 'destroy'], $leadManage);
+    $r->get('/admin/visites', [AppointmentController::class, 'index'], $leadView);
+    $r->post('/admin/visites/{id}', [AppointmentController::class, 'update'], $leadManage);
+    $r->get('/admin/formulaires', [AdminForm::class, 'index'], $content);
+    $r->get('/admin/formulaires/new', [AdminForm::class, 'create'], $content);
+    $r->post('/admin/formulaires', [AdminForm::class, 'store'], $content);
+    $r->get('/admin/formulaires/{id}/edit', [AdminForm::class, 'edit'], $content);
+    $r->post('/admin/formulaires/{id}', [AdminForm::class, 'update'], $content);
+    $r->post('/admin/formulaires/{id}/delete', [AdminForm::class, 'destroy'], $content);
+    $r->get('/admin/formulaires/{id}/reponses', [AdminForm::class, 'submissions'], $content);
 
     // Must stay last: single-segment catch-all for CMS pages.
     $r->get('/{slug}', [PageController::class, 'show']);

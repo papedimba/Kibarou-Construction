@@ -132,11 +132,11 @@ final class CmsTest extends DbTestCase
     public function testMenuRejectsJavascriptUrlAndIsPerTenant(): void
     {
         $this->call('POST', '/admin/menus/items', 'alpha.test', ['location' => 'header', 'label' => 'Bad', 'url' => 'javascript:alert(1)']);
-        $this->call('POST', '/admin/menus/items', 'alpha.test', ['location' => 'header', 'label' => 'Contact', 'url' => '/contact']);
+        $this->call('POST', '/admin/menus/items', 'alpha.test', ['location' => 'header', 'label' => 'Contact', 'url' => '/nous-joindre']);
         $home = $this->call('GET', '/', 'alpha.test')->body;
-        $this->assertStringContainsString('href="/contact"', $home);
+        $this->assertStringContainsString('href="/nous-joindre"', $home);
         $this->assertStringNotContainsString('javascript:', $home);
-        $this->assertStringNotContainsString('href="/contact"', $this->call('GET', '/', 'beta.test')->body);
+        $this->assertStringNotContainsString('href="/nous-joindre"', $this->call('GET', '/', 'beta.test')->body);
     }
 
     public function testRedirectIs301OnlyOnItsSite(): void

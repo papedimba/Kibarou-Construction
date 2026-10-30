@@ -10,6 +10,8 @@ $_ENV['DB_NAME'] = 'kibarou_test';
 $_ENV['PLATFORM_HOST'] = 'platform.test';
 $_ENV['PLATFORM_BASE_DOMAIN'] = 'cms.test';
 $_ENV['APP_DEBUG'] = '1';
+$_ENV['MAIL_DRIVER'] = 'log';
+$_ENV['APP_KEY'] = 'test-key';
 Env::load(dirname(__DIR__) . '/.env');
 
 $db = new Database();

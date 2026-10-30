@@ -195,3 +195,86 @@ test('brand: official logo is shown on the Kibarou site home', async () => {
   assert.equal(await logo.evaluate((i) => i.complete && i.naturalWidth), 1280);
   await page.screenshot({ path: 'test-results/home-logo.png' });
 });
+
+test('crm: visitor request from a land page -> admin follow-up, CSV export, custom form', async () => {
+  const tag = `E2E-L5-${Date.now()}`;
+  const admin = await browser.newPage();
+  await login(admin, 'kibarou.localhost', 'admin', 'admin@kibarou.localhost', 'dev-kibarou-passphrase-1');
+  await admin.waitForURL('**/admin');
+  await admin.goto(url('kibarou.localhost', '/admin/terrains/new'));
+  await admin.fill('input[name=reference]', tag);
+  await admin.fill('input[name=title]', `Lot ${tag}`);
+  await admin.fill('input[name=area_m2]', '500');
+  await admin.fill('input[name=price_xof]', '12000000');
+  await admin.check('input[name=is_published]');
+  await admin.click('button.btn');
+  await admin.waitForURL('**/admin/terrains');
+
+  // anonymous visitor (separate context: no admin cookies)
+  const ctx = await browser.newContext();
+  const visitor = await ctx.newPage();
+  await visitor.goto(url('kibarou.localhost', `/terrains?q=${tag}`));
+  await visitor.click(`a.card:has-text("${tag}")`);
+  await visitor.click('text=Programmer une visite');
+  assert.match(await visitor.textContent('main'), /ne constitue pas une réservation/);
+  await visitor.fill('input[name=first_name]', 'Awa');
+  await visitor.fill('input[name=last_name]', `Visiteur ${tag}`);
+  await visitor.fill('input[name=phone]', '+225 07 00 00 00 00');
+  await visitor.fill('textarea[name=message]', '=1+1 test formule');
+  await visitor.check('input[name=consent]');
+  await visitor.waitForTimeout(3200); // antispam: a human takes more than 3 s
+  await visitor.click('button.btn');
+  await visitor.waitForURL('**/demandes/merci');
+  assert.match(await visitor.textContent('main'), /LD-\d{6}/);
+  await visitor.screenshot({ path: 'test-results/crm-thanks.png' });
+  await ctx.close();
+
+  await admin.goto(url('kibarou.localhost', `/admin/prospects?q=${tag}`));
+  assert.match(await admin.textContent('main'), /Programmer|Demande de visite/);
+  await admin.click(`a[href^="/admin/prospects/"]:has-text("LD-")`);
+  await admin.selectOption('form[action$="/status"] select', 'contacted');
+  await admin.click('form[action$="/status"] button');
+  await admin.fill('textarea[name=body]', 'Rappeler demain matin');
+  await admin.click('form[action$="/notes"] button.btn');
+  await admin.selectOption('form[action$="/assign"] select', { index: 1 });
+  await admin.click('form[action$="/assign"] button');
+  await admin.fill('input[name=scheduled_at]', '2030-05-06T10:30');
+  await admin.click('form[action$="/visites"] button');
+  const detail = await admin.textContent('main');
+  assert.match(detail, /Visite programmée/);
+  assert.match(detail, /Rappeler demain matin/);
+  assert.match(detail, /Contact établi → Visite programmée/);
+  await admin.screenshot({ path: 'test-results/crm-lead.png', fullPage: true });
+
+  const csv = await admin.evaluate(async (u) => { const r = await fetch(u); return [r.headers.get('content-type'), await r.text()]; }, `/admin/prospects/export.csv?q=${tag}`);
+  assert.match(csv[0], /text\/csv/);
+  assert.match(csv[1], /'=1\+1 test formule/);
+
+  // form builder -> public form -> responses
+  const slug = `e2e-form-${Date.now() % 100000}`;
+  await admin.goto(url('kibarou.localhost', '/admin/formulaires/new'));
+  await admin.fill('input[name=name]', `Form ${slug}`);
+  await admin.fill('input[name=slug]', slug);
+  await admin.click('button.btn');
+  await admin.waitForURL('**/admin/formulaires');
+  const ctx2 = await browser.newContext();
+  const v2 = await ctx2.newPage();
+  await v2.goto(url('kibarou.localhost', `/f/${slug}`));
+  await v2.fill('input[name=f0]', 'Partenaire E2E');
+  await v2.fill('input[name=f1]', 'p@example.test');
+  await v2.fill('textarea[name=f2]', 'Bonjour');
+  await v2.waitForTimeout(3200);
+  await v2.click('button.btn');
+  await v2.waitForSelector('.flash');
+  await ctx2.close();
+  await admin.goto(url('kibarou.localhost', '/admin/formulaires'));
+  await admin.click(`tr:has-text("${slug}") a[href$="/reponses"]`);
+  assert.match(await admin.textContent('main'), /Partenaire E2E/);
+
+  // cleanup: antispam caps requests per IP per hour, so leave nothing behind
+  await admin.goto(url('kibarou.localhost', `/admin/prospects?q=${tag}`));
+  await admin.click(`a[href^="/admin/prospects/"]:has-text("LD-")`);
+  await admin.click('form[action$="/delete"] button');
+  await admin.goto(url('kibarou.localhost', '/admin/formulaires'));
+  await admin.click(`tr:has-text("${slug}") form[action$="/delete"] button`);
+});

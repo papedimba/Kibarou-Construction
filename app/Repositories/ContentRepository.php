@@ -9,7 +9,7 @@ use App\Multisite\Slug;
 abstract class ContentRepository extends TenantRepository
 {
     /** Slugs that routes already own; a page with one of these would be unreachable or shadow a feature. */
-    public const RESERVED = ['admin', 'platform', 'terrains', 'actualites', 'assets', 'uploads', 'services', 'realisations', 'lotissements', 'sitemap.xml', 'robots.txt'];
+    public const RESERVED = ['admin', 'platform', 'terrains', 'actualites', 'assets', 'uploads', 'contact', 'demandes', 'f', 'services', 'realisations', 'lotissements', 'sitemap.xml', 'robots.txt'];
     protected array $columns = ['slug', 'title', 'body', 'meta_title', 'meta_description', 'status', 'published_at'];
 
     public function paginate(bool $publishedOnly, int $page = 1, int $perPage = 20): array
