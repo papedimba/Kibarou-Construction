@@ -1,0 +1,12 @@
+/vendor/
+/node_modules/
+.env
+/storage/logs/*
+/storage/cache/*
+/storage/sessions/*
+/storage/backups/*
+/storage/sites/*
+/test-results/
+/playwright-report/
+.phpunit.result.cache
+!.gitkeep

@@ -1,0 +1,8 @@
+<h1>Tableau de bord</h1>
+<ul class="stats">
+  <li><strong><?= (int) $total ?></strong> terrains au total</li>
+  <li><strong><?= (int) ($counts['available'] ?? 0) ?></strong> disponibles</li>
+  <li><strong><?= (int) (($counts['reserving'] ?? 0) + ($counts['reserved'] ?? 0)) ?></strong> réservés / en cours</li>
+  <li><strong><?= (int) ($counts['sold'] ?? 0) ?></strong> vendus</li>
+</ul>
+<p><a class="btn" href="/admin/terrains">Gérer les terrains</a></p>
