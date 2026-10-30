@@ -47,7 +47,7 @@ final class App
             'X-Content-Type-Options' => 'nosniff',
             'X-Frame-Options' => 'DENY',
             'Referrer-Policy' => 'strict-origin-when-cross-origin',
-            'Content-Security-Policy' => "default-src 'self'; img-src 'self' data: https:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; form-action 'self'",
+            'Content-Security-Policy' => "default-src 'self'; img-src 'self' data: https:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; form-action 'self'; frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://www.openstreetmap.org; media-src 'self' https:",
         ];
         return $res;
     }

@@ -27,12 +27,18 @@ final class Request
     {
         $path = rawurldecode((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH));
         $path = '/' . trim(preg_replace('#/+#', '/', $path), '/');
+        $post = $_POST;
+        if (str_contains($_SERVER['CONTENT_TYPE'] ?? '', 'application/json')) {
+            $raw = (string) file_get_contents('php://input', false, null, 0, 1_000_001);
+            $json = strlen($raw) <= 1_000_000 ? json_decode($raw, true) : null; // oversized/invalid body -> empty, never partial
+            $post = is_array($json) ? $json : [];
+        }
         return new self(
             strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET'),
             $path,
             $_SERVER['HTTP_HOST'] ?? '',
             $_GET,
-            $_POST,
+            $post,
             $_COOKIE,
             ($_SERVER['HTTPS'] ?? 'off') !== 'off',
             // shortcut: X-Forwarded-For ignored (spoofable); read it only behind a trusted proxy

@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 use App\Controllers\AuthController;
-use App\Controllers\Admin\{ContentController, DashboardController, DevelopmentController as AdminDev, LandController as AdminLand, LandMediaController, LocationController, MediaController, MenuController, AppointmentController, FormController as AdminForm, LeadController as AdminLead, ProjectController as AdminProject, ServiceController as AdminService, SettingsController};
+use App\Controllers\Admin\{ContentController, EditorController, DashboardController, DevelopmentController as AdminDev, LandController as AdminLand, LandMediaController, LocationController, MediaController, MenuController, AppointmentController, FormController as AdminForm, LeadController as AdminLead, ProjectController as AdminProject, ServiceController as AdminService, SettingsController};
 use App\Controllers\Frontend\{DevelopmentController, FormController, HomeController, LandController, LeadController, PageController, ProjectController, SeoController, ServiceController};
 use App\Core\Router;
 use App\Middleware\{AuthMiddleware, PermissionMiddleware};
@@ -60,6 +60,11 @@ return function (Router $r): void {
         $r->post("/admin/$k/{id}/delete", [ContentController::class, 'destroy'], $content);
     }
     $r->post('/admin/pages/{id}/revisions/{rev}/restore', [ContentController::class, 'restore'], $content);
+    $r->get('/admin/pages/{id}/editeur', [EditorController::class, 'editor'], $content);
+    $r->post('/admin/pages/{id}/blocs', [EditorController::class, 'save'], $content);
+    $r->post('/admin/pages/{id}/publier', [EditorController::class, 'publish'], $content);
+    $r->get('/admin/pages/{id}/apercu', [EditorController::class, 'preview'], $content);
+    $r->post('/admin/editeur/rendu', [EditorController::class, 'render'], $content);
     $r->get('/admin/media', [MediaController::class, 'index'], $content);
     $r->post('/admin/media', [MediaController::class, 'upload'], $content);
     $r->post('/admin/media/{id}/delete', [MediaController::class, 'destroy'], $content);

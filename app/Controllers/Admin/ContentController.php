@@ -80,9 +80,11 @@ final class ContentController
             return $this->notFound();
         }
         $this->snapshot('pages', $old); // restoring is itself undoable
-        $this->pages->update((int) $old['id'], ['title' => $rev['title'], 'body' => $rev['body']]);
-        $this->page->flash('Version restaurée.');
-        return Response::redirect('/admin/pages/' . (int) $old['id'] . '/edit');
+        // blocks go back to the *draft*: restoring never changes what visitors see until it is published again
+        $this->pages->update((int) $old['id'], ['title' => $rev['title'], 'body' => $rev['body']] + ($rev['blocks'] !== null ? ['draft_blocks' => $rev['blocks']] : []));
+        $this->page->flash('Version restaurée dans le brouillon.');
+        $to = $req->input('return') === 'editor' ? 'editeur' : 'edit';
+        return Response::redirect('/admin/pages/' . (int) $old['id'] . "/$to");
     }
 
     /** @return array{0:ContentRepository,1:string} */
@@ -99,7 +101,7 @@ final class ContentController
     private function snapshot(string $kind, array $old): void
     {
         if ($kind === 'pages') {
-            $this->revisions->insert(['page_id' => $old['id'], 'title' => $old['title'], 'body' => $old['body'], 'created_by' => $this->auth->user()['id'] ?? null]);
+            $this->revisions->insert(['page_id' => $old['id'], 'title' => $old['title'], 'body' => $old['body'], 'blocks' => $old['blocks'] ?? null, 'created_by' => $this->auth->user()['id'] ?? null]);
         }
     }
 

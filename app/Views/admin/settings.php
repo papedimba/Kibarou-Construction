@@ -9,6 +9,7 @@
   <label>Adresse <input name="address" value="<?= e($values['address'] ?? '') ?>"></label>
   <label>Logo (chemin, ex. /uploads/1/…png) <input name="logo_url" value="<?= e($values['logo_url'] ?? '') ?>"></label>
   <label>Description SEO par défaut <textarea name="meta_description" rows="3"><?= e($values['meta_description'] ?? '') ?></textarea></label>
+  <label>Page d'accueil (identifiant d'une page publiée construite avec l'éditeur ; vide = accueil par défaut) <input name="home_page" value="<?= e($values['home_page'] ?? '') ?>"></label>
   <label>Thème <select name="theme"><?php foreach (\App\Repositories\SettingsRepository::THEMES as $k => $n): ?><option value="<?= e($k) ?>" <?= ($values['theme'] ?? 'corporate-premium') === $k ? 'selected' : '' ?>><?= e($n) ?></option><?php endforeach; ?></select></label>
   <button class="btn">Enregistrer</button>
 </form>

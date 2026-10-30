@@ -37,6 +37,9 @@ final class SettingsController
         if ($v['logo_url'] !== '' && !preg_match('#^/(uploads|assets)/[A-Za-z0-9_./-]+$#', $v['logo_url']) || str_contains($v['logo_url'], '..')) {
             $e['logo_url'] = 'Logo : chemin interne attendu (/uploads/… ou /assets/…).';
         }
+        if ($v['home_page'] !== '' && !preg_match('/^[a-z0-9-]{1,190}$/', $v['home_page'])) {
+            $e['home_page'] = 'Page d\'accueil : identifiant de page invalide.';
+        }
         if (strlen($v['meta_description']) > 300 || strlen($v['address']) > 300 || strlen($v['tagline']) > 190 || strlen($v['phone']) > 40) {
             $e['meta_description'] = 'Un champ est trop long.';
         }

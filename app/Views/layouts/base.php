@@ -21,11 +21,13 @@ $wa = preg_replace('/\D/', '', $settings['whatsapp'] ?? '');
 <meta property="og:url" content="<?= e($canonical ?? '') ?>">
 <?php if ($desc !== ''): ?><meta property="og:description" content="<?= e($desc) ?>"><?php endif; ?>
 <?php endif; ?>
-<?php if ($adminNav || !$site): ?><meta name="robots" content="noindex"><?php endif; ?>
+<?php if ($adminNav || !$site || !empty($preview)): ?><meta name="robots" content="noindex"><?php endif; ?>
 <link rel="stylesheet" href="/assets/css/app.css">
+<link rel="stylesheet" href="/assets/css/blocks.css">
+<?php foreach (($extraCss ?? []) as $css): ?><link rel="stylesheet" href="<?= e($css) ?>"><?php endforeach; ?>
 <?php if ($site): ?><link rel="stylesheet" href="/assets/css/themes/<?= e(preg_replace('/[^a-z-]/', '', $theme)) ?>.css"><?php endif; ?>
 </head>
-<body>
+<body class="<?= e($bodyClass ?? '') ?>">
 <header class="bar">
   <a class="brand" href="<?= $site ? '/' : '/platform/sites' ?>">
     <?php if (!empty($settings['logo_url']) && !$adminNav): ?><img src="<?= e($settings['logo_url']) ?>" alt="<?= e($site['name']) ?>" class="logo"><?php else: ?><?= e($site['name'] ?? 'Kibarou CMS — Plateforme') ?><?php endif; ?>

@@ -278,3 +278,115 @@ test('crm: visitor request from a land page -> admin follow-up, CSV export, cust
   await admin.goto(url('kibarou.localhost', '/admin/formulaires'));
   await admin.click(`tr:has-text("${slug}") form[action$="/delete"] button`);
 });
+
+test('block editor: build, nest, drag&drop, reorder, device preview, save, publish, restore', async () => {
+  const slug = `e2e-blocs-${Date.now() % 1000000}`;
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  page.on('dialog', (d) => d.accept());
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await login(page, 'kibarou.localhost', 'admin', 'admin@kibarou.localhost', 'dev-kibarou-passphrase-1');
+  await page.waitForURL('**/admin');
+  await page.goto(url('kibarou.localhost', '/admin/pages/new'));
+  await page.fill('input[name=title]', `Page blocs ${slug}`);
+  await page.fill('input[name=slug]', slug);
+  await page.click('button.btn');
+  await page.waitForURL('**/admin/pages');
+  await page.click(`tr:has-text("${slug}") >> text=Éditeur visuel`);
+  await page.waitForSelector('#palette .pal-item');
+  const canvasOrder = () => page.$$eval('#canvas .blk', (n) => n.map((x) => x.dataset.type));
+
+  // Section (container) -> children are added inside it; then a heading and a text after it
+  await page.click('.pal-item[data-type=section]');
+  await page.waitForSelector('#canvas .blk-empty');
+  await page.click('.pal-item[data-type=heading]');
+  await page.fill('#settings input[type=text] >> nth=0', 'Titre E2E');
+  await page.waitForSelector('#canvas h2:has-text("Titre E2E")');
+  assert.deepEqual(await canvasOrder(), ['section', 'heading']); // heading nested in section
+
+  await page.click('.pal-item[data-type=text]');
+  await page.fill('#settings textarea', 'Paragraphe E2E <b>pas de HTML</b>');
+  await page.waitForSelector('#canvas .blk-text:has-text("pas de HTML")');
+  assert.equal(await page.locator('#canvas .blk-text b').count(), 0); // escaped, not interpreted
+
+  // real HTML5 drag & drop: palette button -> top half of the heading
+  await page.locator('.pal-item[data-type=divider]').dragTo(page.locator('#canvas .blk[data-type=heading]'), { targetPosition: { x: 20, y: 3 } });
+  await page.waitForSelector('#canvas .blk[data-type=divider]');
+  assert.deepEqual(await canvasOrder(), ['section', 'divider', 'heading', 'text']);
+
+  // reorder with the accessible buttons, duplicate, delete
+  await page.click('#canvas .blk[data-type=divider]');
+  await page.click('#b-down');
+  await page.waitForFunction(() => [...document.querySelectorAll('#canvas .blk')].map((n) => n.dataset.type).join() === 'section,heading,divider,text');
+  await page.click('#b-dup');
+  await page.waitForFunction(() => document.querySelectorAll('#canvas .blk[data-type=divider]').length === 2);
+  await page.click('#b-del');
+  await page.waitForFunction(() => document.querySelectorAll('#canvas .blk[data-type=divider]').length === 1);
+
+  // list repeater (Services) + select + url validation feedback
+  await page.click('.pal-item[data-type=services]');
+  await page.click('#settings .rep-add');
+  await page.fill('#settings .rep-item input[type=text] >> nth=0', 'Gros œuvre E2E');
+  await page.waitForSelector('#canvas .blk-card h3:has-text("Gros œuvre E2E")');
+
+  // columns: two columns on desktop, stacked on the mobile preview (container queries)
+  await page.click('.pal-item[data-type=columns]');
+  await page.click('.pal-item[data-type=text]');
+  await page.click('.pal-item[data-type=text]');
+  await page.waitForFunction(() => document.querySelectorAll('#canvas .blk-cols > .blk-col').length === 2);
+  const cols = () => page.$eval('#canvas .blk-cols', (n) => getComputedStyle(n).gridTemplateColumns.split(' ').length);
+  assert.equal(await cols(), 2);
+  await page.click('.ed-devices [data-device=mobile]');
+  // the frame animates its max-width (0.2 s): wait for it to settle instead of reading mid-transition
+  await page.waitForFunction(() => document.querySelector('.ed-frame').getBoundingClientRect().width <= 376);
+  assert.equal(await cols(), 1);
+  await page.screenshot({ path: 'test-results/editor-mobile.png' });
+  await page.click('.ed-devices [data-device=tablet]');
+  await page.waitForFunction(() => { const w = document.querySelector('.ed-frame').getBoundingClientRect().width; return w > 376 && w <= 769; });
+  await page.click('.ed-devices [data-device=desktop]');
+
+  // save draft -> persists across reload, but is not public yet
+  await page.click('#btn-save');
+  await page.waitForFunction(() => /Enregistré à/.test(document.getElementById('status').textContent));
+  await page.reload();
+  await page.waitForSelector('#canvas .blk-card h3:has-text("Gros œuvre E2E")');
+  assert.deepEqual((await canvasOrder()).slice(0, 4), ['section', 'heading', 'divider', 'text']);
+  const draftPublic = await page.goto(url('kibarou.localhost', `/${slug}`));
+  assert.equal(draftPublic.status(), 404); // page still a draft
+  await page.goBack();
+  await page.waitForSelector('#palette .pal-item');
+
+  // preview of the draft (new tab), then publish
+  const [preview] = await Promise.all([page.context().waitForEvent('page'), page.click('#btn-preview')]);
+  await preview.waitForLoadState();
+  assert.match(await preview.textContent('main'), /Titre E2E/);
+  assert.match(await preview.content(), /name="robots" content="noindex"/);
+  await preview.close();
+  await page.click('#btn-publish');
+  await page.waitForFunction(() => /Publié à/.test(document.getElementById('status').textContent));
+  const pub = await page.goto(url('kibarou.localhost', `/${slug}`));
+  assert.equal(pub.status(), 200);
+  const html = await page.content();
+  assert.match(html, /Titre E2E/);
+  assert.doesNotMatch(html, /data-block-id/);
+  assert.match(await page.textContent('main'), /pas de HTML/);
+
+  // change + publish again, then restore the first version into the draft
+  await page.goto(url('kibarou.localhost', await page.evaluate(() => '/admin/pages')));
+  await page.click(`tr:has-text("${slug}") >> text=Éditeur visuel`);
+  await page.waitForSelector('#canvas h2:has-text("Titre E2E")');
+  await page.click('#canvas .blk[data-type=heading]');
+  await page.fill('#settings input[type=text] >> nth=0', 'Titre E2E v2');
+  await page.waitForSelector('#canvas h2:has-text("Titre E2E v2")');
+  await page.click('#btn-publish');
+  await page.waitForFunction(() => /Publié à/.test(document.getElementById('status').textContent));
+  await page.reload();
+  await page.click('.ed-revs form button >> nth=0');
+  await page.waitForURL('**/editeur');
+  await page.waitForSelector('#canvas h2');
+  assert.match(await page.textContent('#canvas'), /Titre E2E(?! v2)/); // draft = restored v1
+  assert.match(await page.textContent('.flash'), /restaurée dans le brouillon/);
+  await page.goto(url('kibarou.localhost', `/${slug}`));
+  assert.match(await page.textContent('main'), /Titre E2E v2/); // visitors still see the published v2
+  assert.deepEqual(errors, []);
+});

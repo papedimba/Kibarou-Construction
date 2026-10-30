@@ -6,7 +6,7 @@ namespace App\Repositories;
 final class PageRevisionRepository extends TenantRepository
 {
     protected string $table = 'page_revisions';
-    protected array $columns = ['page_id', 'title', 'body', 'created_by'];
+    protected array $columns = ['page_id', 'title', 'body', 'blocks', 'created_by'];
 
     public function forPage(int $pageId): array
     {

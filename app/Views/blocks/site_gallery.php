@@ -1,0 +1,2 @@
+<?php $pr = $r->project($p['project']); $ph = $pr ? $r->projectPhotos($pr) : []; if ($ph): ?><div class="blk-gallery blk-grid-3"><?php foreach ($ph as $i): ?><img src="<?= e($i['url']) ?>" alt="<?= e($i['alt']) ?>" loading="lazy"><?php endforeach; ?></div>
+<?php elseif ($r->editor): ?><div class="blk-notice">Galerie de chantiers : identifiant d'une réalisation publiée avec photos attendu.</div><?php endif; ?>

@@ -1,0 +1,1 @@
+<div class="blk-icon blk-icon-<?= e($p['size']) ?>"><?= $r->icon($p['icon'], ['sm' => 24, 'md' => 40, 'lg' => 56, 'xl' => 72][$p['size']] ?? 40) ?><?php if ($p['label'] !== ''): ?><span><?= e($p['label']) ?></span><?php endif; ?></div>

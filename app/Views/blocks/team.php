@@ -1,0 +1,2 @@
+<section class="blk-block"><?php if ($p['title'] !== ''): ?><h2><?= e($p['title']) ?></h2><?php endif; ?>
+<div class="blk-cards"><?php foreach ($p['items'] as $i): ?><div class="blk-card blk-person"><?php if ($m = $r->media($i['image'])): ?><img src="<?= e($m['url']) ?>" alt="<?= e($i['name']) ?>" loading="lazy"><?php endif; ?><h3><?= e($i['name']) ?></h3><p><?= e($i['role']) ?></p></div><?php endforeach; ?></div></section>

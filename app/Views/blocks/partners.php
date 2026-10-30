@@ -1,0 +1,2 @@
+<section class="blk-block"><?php if ($p['title'] !== ''): ?><h2><?= e($p['title']) ?></h2><?php endif; ?>
+<ul class="blk-logos"><?php foreach ($p['items'] as $i): $m = $r->media($i['image']); $inner = $m ? '<img src="' . e($m['url']) . '" alt="' . e($i['name']) . '" loading="lazy">' : e($i['name']); ?><li><?= $i['url'] !== '' ? '<a href="' . e($i['url']) . '" rel="noopener">' . $inner . '</a>' : $inner ?></li><?php endforeach; ?></ul></section>

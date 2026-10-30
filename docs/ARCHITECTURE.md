@@ -34,7 +34,7 @@
 ## Plan (lots)
 1. **Lot 1 (livré)** : socle, multisite, auth/RBAC, admin plateforme minimale, terrains (CRUD + catalogue filtré), tests.
 2. **Lot 2 (livré)** : CMS — pages avec révisions, articles, médias, menus, redirections 301, réglages, SEO (meta, canonical, Open Graph, sitemap.xml, robots.txt), 3 thèmes sélectionnables.
-3. Lot 3 : éditeur de blocs (BlockRegistry en liste blanche, JSON versionné).
+3. **Lot 3 (livré)** : éditeur visuel par blocs (30 blocs, registre en liste blanche, JSON versionné, brouillon/publication, versions, aperçus Ordinateur/Tablette/Mobile).
 4. **Lot 4 (livré)** : module foncier complet (photos, documents privés, localisations, lotissements/parcelles, fiche PDF, QR codes) + services BTP + réalisations. *Reste du §10.5/§11 : formulaires de demande et de devis → lot 5 (CRM).*
 5. **Lot 5 (livré)** : CRM (prospects, notes, historique, affectation, visites), formulaire de demande (informations / visite / rappel / devis / partenariat), constructeur de formulaires, antispam, notifications e-mail, export CSV.
 6. Lot 6 : design (taste-skill / Impeccable), site Kibarou, SEO/sitemap.
@@ -72,3 +72,16 @@ Tout ce qui figure aux lots 2 à 7. Le logo officiel est dans `public/assets/ima
 - **Constructeur de formulaires** : un champ par ligne (`Libellé | type | obligatoire | options`), validation serveur stricte, réponses stockées par libellé. Interface visuelle prévue au lot design.
 - **Données personnelles** : adresse IP et consentement horodaté conservés avec chaque demande (antispam / preuve). Politique de conservation et page de confidentialité à définir avec le client.
 - Limites : pas de réservation en ligne ni paiement (hors périmètre V1) ; pas de relance automatique ; notifications seulement vers l'e-mail public du site ; prospects non dédoublonnés.
+
+## Décisions du lot 3
+- **Le serveur fait autorité.** Le navigateur envoie un arbre JSON ; `BlockSanitizer` ne garde que les types du `BlockRegistry`, les propriétés déclarées, des valeurs coercées par type de champ (listes bornées, nombres bornés, `select` dans ses options, URL `/chemin`, `http(s)`, `mailto`, `tel` uniquement), des images appartenant au site courant, 4 niveaux d'imbrication et 200 blocs max. Aucune couleur, classe, style ou HTML libre n'est acceptable → rien d'exécutable ne peut être stocké.
+- **Rendu par gabarits fixes** (`app/Views/blocks/<type>.php`) : chaque valeur est échappée ; aucun style en ligne (CSP) ; les vidéos sont reconstruites à partir d'un identifiant extrait (YouTube/Vimeo) ou d'un `.mp4` https, jamais d'une URL brute ; la CSP autorise uniquement `youtube-nocookie`, `player.vimeo.com` et `openstreetmap.org` en `frame-src`.
+- **JSON versionné** `{"v":1,"blocks":[…]}` (`BlockStorage`) : une version inconnue ou un JSON corrompu donne une page vide, qui retombe sur le texte de la page — jamais d'erreur 500.
+- **Brouillon ≠ publié** : `draft_blocks` (enregistrer) / `blocks` (publier). Publier archive la version précédente dans `page_revisions` ; restaurer recopie dans le *brouillon* seulement.
+- **Aucune perte silencieuse** : une charge utile absente ou illisible est refusée (HTTP 400) au lieu d'être interprétée comme « page vide ».
+- **Aperçus fidèles** : le CSS des blocs utilise des *requêtes de conteneur* (`@container`), donc l'aperçu Tablette/Mobile de l'éditeur se comporte comme le vrai site à cette largeur. Le canvas affiche le **rendu public réel** (même gabarits), pas une imitation.
+- **Blocs de données** (catalogue, terrain vedette, galeries, services, réalisations) : lus via les repositories du site courant ; un terrain/projet d'un autre site ou non publié n'apparaît jamais (test dédié).
+- **Témoignages** : seuls ceux cochés « vérifié » sont publiés ; l'éditeur signale ceux qui sont masqués.
+- **Icônes Lucide** (licence ISC, `app/Blocks/icons/`) : 40 icônes locales inlinées côté serveur (aucun CDN, compatible CSP).
+- **Page d'accueil** : réglage `home_page` (identifiant d'une page publiée avec blocs) ; sinon accueil par défaut.
+- Limites : seules les **pages** utilisent l'éditeur (pas les articles) ; le glisser-déposer a des boutons ↑/↓ de secours mais les blocs ne se déplacent pas hors de leur conteneur avec ↑/↓ (utiliser le glisser-déposer) ; choix d'image parmi les médias déjà téléversés (pas de téléversement dans l'éditeur) ; pas d'annuler/rétablir ; pas d'édition simultanée (dernier enregistrement gagnant) ; le rendu public n'est pas mis en cache ; hero et sections ne sont pas pleine largeur tant que le design (lot 6) n'est pas fait.

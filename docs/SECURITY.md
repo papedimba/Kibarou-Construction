@@ -11,4 +11,6 @@ Lot 4 : documents fonciers hors web root, servis par contrôleur (IDOR testé), 
 
 Lot 5 : antispam à 3 couches (champ piège, jeton signé, plafond par IP) + CSRF, validation serveur des demandes et des formulaires, isolation des prospects testée (lecture, statut, note, visite, suppression, export), affectation limitée aux membres du site, export CSV anti-injection de formules, e-mails protégés contre l'injection d'en-têtes. `APP_KEY` obligatoire en production.
 
+Lot 3 : éditeur de blocs — liste blanche des types et des champs, URL restreintes (pas de `javascript:`/`data:`/`//`), ids d'images vérifiés par site, profondeur/nombre bornés, échappement systématique, aucun style/script en ligne, embeds limités par CSP, JSON corrompu inoffensif, endpoints JSON soumis au CSRF (`_csrf` dans le corps) et au RBAC `content.manage`, isolation des pages (404 inter-sites), tests de mutation sur URL et images.
+
 Non encore implémenté : documents privés, journal d'activité global (table prête), 2FA.
