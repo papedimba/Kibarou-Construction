@@ -36,7 +36,8 @@ $wa = preg_replace('/\D/', '', $settings['whatsapp'] ?? '');
       <?php if (!$headerMenu): ?><a href="/terrains">Nos terrains</a><?php endif; ?>
       <?php if ($user): ?><a href="/admin">Administration</a><?php endif; ?>
     <?php elseif ($site && $adminNav): ?>
-      <a href="/admin">Accueil</a><a href="/admin/terrains">Terrains</a><a href="/admin/pages">Pages</a><a href="/admin/articles">Articles</a>
+      <a href="/admin">Accueil</a><a href="/admin/terrains">Terrains</a><a href="/admin/lotissements">Lotissements</a><a href="/admin/localisations">Localisations</a>
+      <a href="/admin/services">Services</a><a href="/admin/realisations">Réalisations</a><a href="/admin/pages">Pages</a><a href="/admin/articles">Articles</a>
       <a href="/admin/media">Médias</a><a href="/admin/menus">Menus</a><a href="/admin/settings">Réglages</a><a href="/">Voir le site</a>
     <?php elseif ($user): ?>
       <a href="/platform/sites">Sites</a>

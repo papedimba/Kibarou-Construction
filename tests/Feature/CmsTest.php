@@ -19,13 +19,6 @@ final class CmsTest extends DbTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        foreach (['pages', 'posts', 'media', 'menus', 'redirects'] as $t) {
-            $this->db->run('SET FOREIGN_KEY_CHECKS = 0');
-            $this->db->run("TRUNCATE `$t`");
-            $this->db->run('TRUNCATE menu_items');
-            $this->db->run('TRUNCATE page_revisions');
-            $this->db->run('SET FOREIGN_KEY_CHECKS = 1');
-        }
         $this->a = $this->makeSite('alpha', 'alpha.test');
         $this->b = $this->makeSite('beta', 'beta.test');
         $this->login('alpha.test', 'admin@alpha.test');

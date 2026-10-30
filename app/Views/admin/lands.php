@@ -15,7 +15,7 @@
       <td><?= e($l['reference']) ?></td><td><?= e($l['title']) ?></td><td><?= (int) $l['area_m2'] ?> m²</td><td><?= e(fcfa($l['price_xof'])) ?></td>
       <td><?= e($l['status']) ?></td><td><?= $l['is_published'] ? 'Oui' : 'Non' ?></td>
       <td>
-        <a href="/admin/terrains/<?= (int) $l['id'] ?>/edit">Modifier</a>
+        <a href="/admin/terrains/<?= (int) $l['id'] ?>/edit">Modifier</a> · <a href="/admin/terrains/<?= (int) $l['id'] ?>/medias">Photos/docs</a>
         <form method="post" action="/admin/terrains/<?= (int) $l['id'] ?>/status" class="inline"><?= csrf_field($csrf) ?>
           <select name="status" aria-label="Changer le statut"><?php foreach ($statuses as $s): ?><option value="<?= e($s) ?>" <?= $l['status'] === $s ? 'selected' : '' ?>><?= e($s) ?></option><?php endforeach; ?></select>
           <button>OK</button>

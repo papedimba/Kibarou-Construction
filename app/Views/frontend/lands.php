@@ -4,6 +4,9 @@
   <select name="category" aria-label="Catégorie"><option value="">Toutes catégories</option>
     <?php foreach ($cats as $c): ?><option value="<?= e($c['slug']) ?>" <?= ($f['category'] ?? '') === $c['slug'] ? 'selected' : '' ?>><?= e($c['name']) ?></option><?php endforeach; ?>
   </select>
+  <select name="location" aria-label="Localisation"><option value="">Toutes localisations</option>
+    <?php foreach ($locs as $l): ?><option value="<?= (int) $l['id'] ?>" <?= (string) ($f['location'] ?? '') === (string) $l['id'] ? 'selected' : '' ?>><?= e($l['label']) ?></option><?php endforeach; ?>
+  </select>
   <input name="min" inputmode="numeric" placeholder="Budget min (FCFA)" value="<?= e($f['min'] ?? '') ?>" aria-label="Budget minimum">
   <input name="max" inputmode="numeric" placeholder="Budget max (FCFA)" value="<?= e($f['max'] ?? '') ?>" aria-label="Budget maximum">
   <input name="area_min" inputmode="numeric" placeholder="Surface min (m²)" value="<?= e($f['area_min'] ?? '') ?>" aria-label="Superficie minimale">
@@ -21,6 +24,7 @@
 <div class="grid">
 <?php foreach ($r['items'] as $l): ?>
   <a class="card" href="/terrains/<?= e($l['slug']) ?>">
+    <?php if (!empty($covers[(int) $l['id']])): ?><img src="/uploads/<?= (int) $site['id'] ?>/<?= e($covers[(int) $l['id']]) ?>" alt="<?= e($l['title']) ?>" loading="lazy" class="thumb"><?php endif; ?>
     <small><?= e($l['reference']) ?> · <?= e($l['category_name'] ?? '') ?></small>
     <strong><?= e($l['title']) ?></strong>
     <span><?= (int) $l['area_m2'] ?> m² — <?= e(fcfa($l['price_xof'])) ?></span>

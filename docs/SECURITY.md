@@ -7,4 +7,6 @@ en-têtes CSP/X-Frame-Options/nosniff ; erreurs centralisées journalisées dans
 
 Lot 2 : uploads contrôlés par contenu (MIME réel, SVG refusé, 5 Mo, nom aléatoire, exécution interdite dans `public/uploads`), suppression de fichier par `basename`, contenu échappé (pas de HTML brut), liens `javascript:` refusés, thèmes en liste blanche.
 
+Lot 4 : documents fonciers hors web root, servis par contrôleur (IDOR testé), vérification jamais présumée, `realpath` pour le logo du PDF, QR/PDF scopés au site, localisations/catégories d'un autre site refusées, services désactivés par défaut.
+
 Non encore implémenté : documents privés, antispam des formulaires, journal d'activité (table prête), 2FA.

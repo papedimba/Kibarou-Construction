@@ -12,3 +12,5 @@
 !.gitkeep
 /public/uploads/*
 !/public/uploads/.htaccess
+/storage/private/*
+!/storage/private/.gitkeep

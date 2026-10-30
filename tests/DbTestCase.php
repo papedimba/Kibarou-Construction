@@ -16,8 +16,11 @@ abstract class DbTestCase extends TestCase
     {
         $this->db = new Database();
         $this->db->run('SET FOREIGN_KEY_CHECKS = 0');
-        foreach (['sites', 'domains', 'users', 'site_members', 'settings', 'activity_logs', 'login_attempts', 'land_categories', 'locations', 'land_properties'] as $t) {
-            $this->db->run("TRUNCATE `$t`");
+        foreach ($this->db->all('SHOW TABLES') as $row) {
+            $t = array_values($row)[0];
+            if (!in_array($t, ['migrations', 'roles', 'permissions', 'role_permissions'], true)) {
+                $this->db->run("TRUNCATE `$t`"); // every table: new modules must never inherit rows from a previous test
+            }
         }
         $this->db->run('SET FOREIGN_KEY_CHECKS = 1');
         $_SESSION = [];

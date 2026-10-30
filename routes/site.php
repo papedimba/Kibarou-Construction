@@ -2,8 +2,8 @@
 declare(strict_types=1);
 
 use App\Controllers\AuthController;
-use App\Controllers\Admin\{ContentController, DashboardController, LandController as AdminLand, MediaController, MenuController, SettingsController};
-use App\Controllers\Frontend\{HomeController, LandController, PageController, SeoController};
+use App\Controllers\Admin\{ContentController, DashboardController, DevelopmentController as AdminDev, LandController as AdminLand, LandMediaController, LocationController, MediaController, MenuController, ProjectController as AdminProject, ServiceController as AdminService, SettingsController};
+use App\Controllers\Frontend\{DevelopmentController, HomeController, LandController, PageController, ProjectController, SeoController, ServiceController};
 use App\Core\Router;
 use App\Middleware\{AuthMiddleware, PermissionMiddleware};
 
@@ -12,6 +12,7 @@ return function (Router $r): void {
     $view = [...$member, PermissionMiddleware::class . ':land.view'];
     $manage = [...$member, PermissionMiddleware::class . ':land.manage'];
 
+    $btp = [...$member, PermissionMiddleware::class . ':btp.manage'];
     $content = [...$member, PermissionMiddleware::class . ':content.manage'];
     $settings = [...$member, PermissionMiddleware::class . ':site.settings'];
 
@@ -22,6 +23,14 @@ return function (Router $r): void {
     $r->get('/actualites/{slug}', [PageController::class, 'post']);
     $r->get('/terrains', [LandController::class, 'index']);
     $r->get('/terrains/{slug}', [LandController::class, 'show']);
+    $r->get('/terrains/{slug}/fiche.pdf', [LandController::class, 'pdf']);
+    $r->get('/terrains/{slug}/documents/{doc}', [LandController::class, 'document']);
+    $r->get('/services', [ServiceController::class, 'index']);
+    $r->get('/services/{slug}', [ServiceController::class, 'show']);
+    $r->get('/realisations', [ProjectController::class, 'index']);
+    $r->get('/realisations/{slug}', [ProjectController::class, 'show']);
+    $r->get('/lotissements', [DevelopmentController::class, 'index']);
+    $r->get('/lotissements/{slug}', [DevelopmentController::class, 'show']);
 
     $r->get('/admin/login', [AuthController::class, 'form']);
     $r->post('/admin/login', [AuthController::class, 'login']);
@@ -54,6 +63,38 @@ return function (Router $r): void {
     $r->post('/admin/menus/redirects/{id}/delete', [MenuController::class, 'deleteRedirect'], $content);
     $r->get('/admin/settings', [SettingsController::class, 'form'], $settings);
     $r->post('/admin/settings', [SettingsController::class, 'save'], $settings);
+
+    $r->get('/admin/terrains/{id}/medias', [LandMediaController::class, 'show'], $manage);
+    $r->post('/admin/terrains/{id}/images', [LandMediaController::class, 'addImage'], $manage);
+    $r->post('/admin/terrains/{id}/images/{img}/delete', [LandMediaController::class, 'removeImage'], $manage);
+    $r->post('/admin/terrains/{id}/documents', [LandMediaController::class, 'addDocument'], $manage);
+    $r->post('/admin/terrains/{id}/documents/{doc}/verify', [LandMediaController::class, 'verifyDocument'], $manage);
+    $r->post('/admin/terrains/{id}/documents/{doc}/delete', [LandMediaController::class, 'removeDocument'], $manage);
+    $r->get('/admin/terrains/{id}/documents/{doc}', [LandMediaController::class, 'downloadDocument'], $manage);
+    $r->get('/admin/terrains/{id}/qr.{format}', [LandMediaController::class, 'qr'], $manage);
+    $r->get('/admin/terrains/{id}/fiche.pdf', [LandMediaController::class, 'pdf'], $manage);
+    $r->get('/admin/localisations', [LocationController::class, 'index'], $manage);
+    $r->post('/admin/localisations', [LocationController::class, 'store'], $manage);
+    $r->post('/admin/localisations/{id}/delete', [LocationController::class, 'destroy'], $manage);
+    $r->get('/admin/lotissements', [AdminDev::class, 'index'], $manage);
+    $r->get('/admin/lotissements/new', [AdminDev::class, 'create'], $manage);
+    $r->post('/admin/lotissements', [AdminDev::class, 'store'], $manage);
+    $r->get('/admin/lotissements/{id}/edit', [AdminDev::class, 'edit'], $manage);
+    $r->post('/admin/lotissements/{id}', [AdminDev::class, 'update'], $manage);
+    $r->post('/admin/lotissements/{id}/delete', [AdminDev::class, 'destroy'], $manage);
+    $r->post('/admin/lotissements/{id}/parcelles', [AdminDev::class, 'addPlot'], $manage);
+    $r->post('/admin/lotissements/{id}/parcelles/{plot}', [AdminDev::class, 'updatePlot'], $manage);
+    $r->post('/admin/lotissements/{id}/parcelles/{plot}/delete', [AdminDev::class, 'deletePlot'], $manage);
+    foreach (['services' => AdminService::class, 'realisations' => AdminProject::class] as $k => $ctl) {
+        $r->get("/admin/$k", [$ctl, 'index'], $btp);
+        $r->get("/admin/$k/new", [$ctl, 'create'], $btp);
+        $r->post("/admin/$k", [$ctl, 'store'], $btp);
+        $r->get("/admin/$k/{id}/edit", [$ctl, 'edit'], $btp);
+        $r->post("/admin/$k/{id}", [$ctl, 'update'], $btp);
+        $r->post("/admin/$k/{id}/delete", [$ctl, 'destroy'], $btp);
+    }
+    $r->post('/admin/realisations/{id}/images', [AdminProject::class, 'addImage'], $btp);
+    $r->post('/admin/realisations/{id}/images/{img}/delete', [AdminProject::class, 'removeImage'], $btp);
 
     // Must stay last: single-segment catch-all for CMS pages.
     $r->get('/{slug}', [PageController::class, 'show']);

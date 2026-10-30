@@ -23,7 +23,7 @@ final class TenantIsolationTest extends DbTestCase
     {
         $ctx = new TenantContext();
         $ctx->set(['id' => $siteId]);
-        return new LandRepository($this->db, $ctx);
+        return new LandRepository($this->db, $ctx, new \App\Repositories\LocationRepository($this->db, $ctx));
     }
 
     public function testRepositoryCannotReadOtherTenantRow(): void

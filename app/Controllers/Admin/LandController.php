@@ -4,18 +4,19 @@ declare(strict_types=1);
 namespace App\Controllers\Admin;
 
 use App\Core\{Page, Request, Response};
-use App\Repositories\LandRepository;
+use App\Repositories\{LandRepository, LocationRepository};
+use App\Services\DocumentService;
 
 final class LandController
 {
-    public function __construct(private Page $page, private LandRepository $lands)
+    public function __construct(private Page $page, private LandRepository $lands, private LocationRepository $locations, private DocumentService $docs)
     {
     }
 
     public function index(Request $req, array $p): Response
     {
         $r = $this->lands->search($req->query, false, (int) $req->input('page', 1), 20);
-        return $this->page->render('admin/lands', ['r' => $r, 'f' => $req->query, 'cats' => $this->lands->categories(), 'statuses' => LandRepository::STATUSES]);
+        return $this->page->render('admin/lands', ['r' => $r, 'f' => $req->query, 'cats' => $this->lands->categories(), 'statuses' => LandRepository::STATUSES, 'locs' => $this->locations->tree()]);
     }
 
     public function create(Request $req, array $p): Response
@@ -69,6 +70,7 @@ final class LandController
 
     public function destroy(Request $req, array $p): Response
     {
+        $this->docs->purgeLand((int) $p['id']); // files first: the DB cascade only removes rows
         if (!$this->lands->delete((int) $p['id'])) {
             return $this->notFound();
         }
@@ -78,7 +80,7 @@ final class LandController
 
     private function form(array $land, array $errors, ?int $id): Response
     {
-        return $this->page->render('admin/land_form', ['land' => $land, 'errors' => $errors, 'id' => $id, 'cats' => $this->lands->categories(), 'statuses' => LandRepository::STATUSES], $errors ? 422 : 200);
+        return $this->page->render('admin/land_form', ['land' => $land, 'errors' => $errors, 'id' => $id, 'cats' => $this->lands->categories(), 'statuses' => LandRepository::STATUSES, 'locs' => $this->locations->tree()], $errors ? 422 : 200);
     }
 
     private function notFound(): Response
@@ -105,6 +107,15 @@ final class LandController
         if ($catId !== null && !in_array($catId, array_map('intval', array_column($this->lands->categories(), 'id')), true)) {
             $e['category_id'] = 'Catégorie invalide.';
         }
+        $locId = ($in['location_id'] ?? '') === '' ? null : (int) $in['location_id'];
+        if ($locId !== null && !in_array($locId, array_map('intval', array_column($this->locations->tree(), 'id')), true)) {
+            $e['location_id'] = 'Localisation invalide.';
+        }
+        $lat = trim((string) ($in['latitude'] ?? ''));
+        $lng = trim((string) ($in['longitude'] ?? ''));
+        if (($lat !== '' || $lng !== '') && (!is_numeric($lat) || !is_numeric($lng) || abs((float) $lat) > 90 || abs((float) $lng) > 180)) {
+            $e['latitude'] = 'Coordonnées GPS invalides (latitude -90..90, longitude -180..180).';
+        }
         if (!isset($e['reference'])) {
             $dup = $this->lands->search(['q' => $ref], false, 1, 50)['items'];
             foreach ($dup as $d) {
@@ -115,6 +126,8 @@ final class LandController
         }
         return [[
             'title' => $title, 'reference' => $ref, 'category_id' => $catId, 'description' => trim((string) ($in['description'] ?? '')) ?: null,
+            'location_id' => $locId, 'latitude' => $lat === '' ? null : $lat, 'longitude' => $lng === '' ? null : $lng,
+            'features' => trim((string) ($in['features'] ?? '')) ?: null, 'land_info' => trim((string) ($in['land_info'] ?? '')) ?: null,
             'area_m2' => (int) $area, 'price_xof' => (int) $price, 'status' => $status, 'is_published' => empty($in['is_published']) ? 0 : 1,
         ], $e];
     }

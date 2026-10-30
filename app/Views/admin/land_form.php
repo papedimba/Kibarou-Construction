@@ -10,7 +10,14 @@
   <label>Superficie (m²) <input name="area_m2" inputmode="numeric" required value="<?= e((string) ($land['area_m2'] ?? '')) ?>"></label>
   <label>Prix (FCFA) <input name="price_xof" inputmode="numeric" required value="<?= e((string) ($land['price_xof'] ?? '')) ?>"></label>
   <label>Statut <select name="status"><?php foreach ($statuses as $s): ?><option value="<?= e($s) ?>" <?= ($land['status'] ?? 'available') === $s ? 'selected' : '' ?>><?= e($s) ?></option><?php endforeach; ?></select></label>
+  <label>Localisation <select name="location_id"><option value="">—</option>
+    <?php foreach ($locs as $l): ?><option value="<?= (int) $l['id'] ?>" <?= (string) ($land['location_id'] ?? '') === (string) $l['id'] ? 'selected' : '' ?>><?= e($l['label']) ?></option><?php endforeach; ?></select></label>
+  <label>Latitude GPS (facultatif) <input name="latitude" inputmode="decimal" value="<?= e((string) ($land['latitude'] ?? '')) ?>"></label>
+  <label>Longitude GPS (facultatif) <input name="longitude" inputmode="decimal" value="<?= e((string) ($land['longitude'] ?? '')) ?>"></label>
+  <label>Caractéristiques <textarea name="features" rows="3"><?= e($land['features'] ?? '') ?></textarea></label>
+  <label>Informations foncières (à renseigner uniquement si confirmées) <textarea name="land_info" rows="3"><?= e($land['land_info'] ?? '') ?></textarea></label>
   <label>Description <textarea name="description" rows="5"><?= e($land['description'] ?? '') ?></textarea></label>
   <label class="check"><input type="checkbox" name="is_published" value="1" <?= !empty($land['is_published']) ? 'checked' : '' ?>> Publié sur le site</label>
   <button class="btn">Enregistrer</button>
 </form>
+<?php if ($id): ?><p><a href="/admin/terrains/<?= (int) $id ?>/medias">Photos, documents, QR code et fiche PDF →</a></p><?php endif; ?>

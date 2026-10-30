@@ -121,3 +121,77 @@ test('cms: create page, upload real image, switch theme, sitemap lists page', as
   assert.match(await sm.text(), new RegExp(`/${slug}`));
   await page.screenshot({ path: 'test-results/cms-media.png' });
 });
+
+test('land module: location, photo, public+verified document, PDF sheet, QR, inactive service hidden', async () => {
+  const page = await browser.newPage();
+  const tag = `E2E-L4-${Date.now()}`;
+  await login(page, 'kibarou.localhost', 'admin', 'admin@kibarou.localhost', 'dev-kibarou-passphrase-1');
+  await page.waitForURL('**/admin');
+
+  await page.goto(url('kibarou.localhost', '/admin/localisations'));
+  await page.selectOption('select[name=type]', 'ville');
+  await page.fill('input[name=name]', `Ville ${tag}`);
+  await page.click('button.btn');
+  await page.goto(url('kibarou.localhost', '/admin/terrains/new'));
+  await page.fill('input[name=reference]', tag);
+  await page.fill('input[name=title]', `Lot ${tag}`);
+  await page.fill('input[name=area_m2]', '600');
+  await page.fill('input[name=price_xof]', '18000000');
+  await page.selectOption('select[name=location_id]', { label: `Ville ${tag}` });
+  await page.fill('input[name=latitude]', '5.345317');
+  await page.fill('input[name=longitude]', '-4.024429');
+  await page.check('input[name=is_published]');
+  await page.click('button.btn');
+  await page.waitForURL('**/admin/terrains');
+
+  await page.locator('tr', { hasText: tag }).getByText('Photos/docs').click();
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+  await page.setInputFiles('form[action$="/images"] input[type=file]', { name: 'p.png', mimeType: 'image/png', buffer: png });
+  await page.click('form[action$="/images"] button.btn');
+  await page.waitForSelector('img.thumb');
+
+  const pdf = Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF');
+  await page.setInputFiles('form[action$="/documents"] input[type=file]', { name: 'acd.pdf', mimeType: 'application/pdf', buffer: pdf });
+  await page.selectOption('form[action$="/documents"] select[name=type]', 'acd');
+  await page.selectOption('form[action$="/documents"] select[name=visibility]', 'public');
+  await page.click('form[action$="/documents"] button.btn');
+  assert.match(await page.textContent('main'), /Non vérifié/);
+
+  const landUrl = page.url().replace('/medias', '');
+  // generated assets are fetched in-browser (Chromium resolves *.localhost, Node does not)
+  const status = async (path) => (await page.evaluate(async (u) => { const r = await fetch(u); return [r.status, r.headers.get('content-type'), (await r.text()).slice(0, 4)]; }, path));
+  const base = new URL(landUrl).pathname;
+  assert.deepEqual((await status(`${base}/fiche.pdf`)).slice(0, 3), [200, 'application/pdf', '%PDF']);
+  assert.equal((await status(`${base}/qr.svg`))[1], 'image/svg+xml');
+  assert.equal((await status(`${base}/qr.png`))[1], 'image/png');
+
+  await page.click('form[action$="/verify"] button');
+  assert.match(await page.textContent('main'), /Vérifié/);
+
+  await page.goto(url('kibarou.localhost', `/terrains?q=${tag}`));
+  assert.ok(await page.locator('.card img.thumb').count() >= 1, 'cover photo in catalogue');
+  await page.click(`a.card:has-text("${tag}")`);
+  const body = await page.textContent('main');
+  assert.match(body, /Ville E2E-L4/);
+  assert.match(body, /document vérifié/);
+  assert.match(body, /Voir sur la carte/);
+  assert.match(body, /18[\s ]000[\s ]000 FCFA/);
+  await page.screenshot({ path: 'test-results/land-detail.png', fullPage: true });
+
+  // services: a new one is hidden until activated
+  await page.goto(url('kibarou.localhost', '/admin/services/new'));
+  await page.fill('input[name=title]', `Service ${tag}`);
+  await page.selectOption('select[name=category]', 'terrassement');
+  await page.click('button.btn');
+  await page.goto(url('kibarou.localhost', '/services'));
+  assert.doesNotMatch(await page.textContent('main'), new RegExp(tag));
+});
+
+test('brand: official logo is shown on the Kibarou site home', async () => {
+  const page = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+  await page.goto(url('kibarou.localhost', '/'));
+  const logo = page.locator('header img.logo');
+  assert.equal(await logo.count(), 1);
+  assert.equal(await logo.evaluate((i) => i.complete && i.naturalWidth), 1280);
+  await page.screenshot({ path: 'test-results/home-logo.png' });
+});

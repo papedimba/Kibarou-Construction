@@ -34,7 +34,7 @@ final class SettingsController
         if ($v['theme'] !== '' && !isset(SettingsRepository::THEMES[$v['theme']])) {
             $e['theme'] = 'Thème inconnu.';
         }
-        if ($v['logo_url'] !== '' && !preg_match('#^/(uploads|assets)/[A-Za-z0-9_./-]+$#', $v['logo_url'])) {
+        if ($v['logo_url'] !== '' && !preg_match('#^/(uploads|assets)/[A-Za-z0-9_./-]+$#', $v['logo_url']) || str_contains($v['logo_url'], '..')) {
             $e['logo_url'] = 'Logo : chemin interne attendu (/uploads/… ou /assets/…).';
         }
         if (strlen($v['meta_description']) > 300 || strlen($v['address']) > 300 || strlen($v['tagline']) > 190 || strlen($v['phone']) > 40) {

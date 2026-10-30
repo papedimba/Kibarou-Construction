@@ -35,7 +35,7 @@
 1. **Lot 1 (livré)** : socle, multisite, auth/RBAC, admin plateforme minimale, terrains (CRUD + catalogue filtré), tests.
 2. **Lot 2 (livré)** : CMS — pages avec révisions, articles, médias, menus, redirections 301, réglages, SEO (meta, canonical, Open Graph, sitemap.xml, robots.txt), 3 thèmes sélectionnables.
 3. Lot 3 : éditeur de blocs (BlockRegistry en liste blanche, JSON versionné).
-4. Lot 4 : module foncier complet (images, documents privés, localisations, lotissements/parcelles, PDF, QR) + BTP + réalisations.
+4. **Lot 4 (livré)** : module foncier complet (photos, documents privés, localisations, lotissements/parcelles, fiche PDF, QR codes) + services BTP + réalisations. *Reste du §10.5/§11 : formulaires de demande et de devis → lot 5 (CRM).*
 5. Lot 5 : CRM, formulaires, antispam, export CSV.
 6. Lot 6 : design (taste-skill / Impeccable), site Kibarou, SEO/sitemap.
 7. Lot 7 : installateur cPanel, sauvegardes, documentation de déploiement, campagne E2E complète.
@@ -51,3 +51,13 @@ Tout ce qui figure aux lots 2 à 7. Le logo officiel est dans `public/assets/ima
 - **Liens** (menus, redirections) : chemins `/…` ou `http(s)://` uniquement (pas de `javascript:`).
 - **Thèmes** : liste blanche de 3 fichiers CSS (variables) ; aucun code fourni par l'utilisateur n'est exécuté.
 - Limites connues : redirections 301 seulement pour les chemins sans page correspondante ; sitemap limité à 1000 terrains ; catégories/tags d'articles non implémentés ; menus sans réordonnancement (ordre d'ajout).
+
+## Décisions du lot 4
+- **Documents fonciers** : `storage/private/<site_id>/` (hors web root), nom aléatoire, MIME vérifié sur le contenu (PDF/JPEG/PNG, 10 Mo). Servis uniquement par contrôleur, en pièce jointe, avec le type stocké. Côté public : seulement `visibility = public` d'un terrain publié ; l'état « vérifié » n'est affiché qu'après validation explicite par un administrateur (par défaut : « en attente de vérification »).
+- **Isolation en base** : `land_images`, `land_documents`, `land_plots`, `project_images`… référencent leurs parents par FK composites `(site_id, id)` ; un test vérifie qu'un lien vers le média d'un autre site est refusé par la base.
+- **Localisations** : arbre libre (district → quartier) administrable ; **un seul filtre hiérarchique** (récursif, inclut les descendants) au lieu de six listes séparées.
+- **PDF** : FPDF (1 fichier, sans extension système) ; **QR** : chillerlan/php-qrcode (SVG pour l'impression, PNG). Seules dépendances de production du CMS.
+- **Logo dans le PDF** : chemin relatif à `public/` validé (`realpath` + préfixe) pour exclure toute lecture hors du répertoire public ; `..` refusé dans les réglages (correction d'une faille du lot 2).
+- **Services BTP** : aucun pré-rempli ; créés *inactifs*, invisibles du public jusqu'à activation. Réalisations : aucune pré-remplie.
+- **Parcelles** : champ `geometry` réservé au futur plan interactif (non utilisé).
+- Limites : carte = lien OpenStreetMap (pas de carte intégrée avant le lot design) ; galeries sans réordonnancement ; pas de photos par parcelle ; la suppression d'un média encore utilisé par un service est refusée par la base.

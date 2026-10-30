@@ -9,12 +9,17 @@ final class LandRepository extends TenantRepository
 {
     public const STATUSES = ['available', 'reserving', 'reserved', 'sold', 'unavailable'];
     protected string $table = 'land_properties';
-    protected array $columns = ['category_id', 'location_id', 'reference', 'slug', 'title', 'description', 'area_m2', 'price_xof', 'status', 'is_published'];
+    protected array $columns = ['category_id', 'location_id', 'reference', 'slug', 'title', 'description', 'area_m2', 'price_xof', 'status', 'is_published', 'latitude', 'longitude', 'features', 'land_info'];
 
     private const SORTS = [
         'price_asc' => 'l.price_xof ASC', 'price_desc' => 'l.price_xof DESC',
         'area_desc' => 'l.area_m2 DESC', 'recent' => 'l.created_at DESC, l.id DESC',
     ];
+
+    public function __construct(\App\Core\Database $db, \App\Multisite\TenantContext $tenant, private LocationRepository $locations)
+    {
+        parent::__construct($db, $tenant);
+    }
 
     public function categories(): array
     {
@@ -58,6 +63,10 @@ final class LandRepository extends TenantRepository
             $w[] = 'c.slug = ?';
             $p[] = $f['category'];
         }
+        if (($f['location'] ?? '') !== '' && ctype_digit((string) $f['location'])) {
+            $ids = $this->locations->withDescendants((int) $f['location']) ?: [0];
+            $w[] = 'l.location_id IN (' . implode(',', $ids) . ')'; // ids are ints from our own query
+        }
         foreach (['min' => ['l.price_xof >= ?'], 'max' => ['l.price_xof <= ?'], 'area_min' => ['l.area_m2 >= ?'], 'area_max' => ['l.area_m2 <= ?']] as $k => [$cond]) {
             if (isset($f[$k]) && ctype_digit((string) $f[$k])) {
                 $w[] = $cond;
@@ -88,5 +97,15 @@ final class LandRepository extends TenantRepository
             $slug = "$base-$i";
         }
         return $slug;
+    }
+
+    /** Published, still-sellable lands of the same category (or any, if uncategorised), excluding this one. */
+    public function similar(array $land, int $limit = 3): array
+    {
+        return $this->db->all(
+            "SELECT * FROM land_properties WHERE site_id = ? AND id <> ? AND is_published = 1 AND status = 'available' AND (category_id <=> ?)
+             ORDER BY ABS(price_xof - ?) LIMIT " . (int) $limit,
+            [$this->tenant->id(), $land['id'], $land['category_id'], $land['price_xof']]
+        );
     }
 }
