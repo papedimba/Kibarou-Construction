@@ -28,6 +28,7 @@ Ouvrir `https://plateforme.mondomaine.com/install.php` (voir `INSTALLATION.md`).
 Ne jamais mettre `777`. Le dossier racine n'a besoin d'être accessible en écriture que pendant l'installation.
 
 ## 6. DNS
+- **Un seul domaine** : l'hôte de la plateforme peut être le domaine du site lui-même (ex. `kibarouconstruction.com`) : `/platform/…` reste l'administration centrale, tout le reste sert le site. Pour plusieurs clients, préférez un hôte dédié (`plateforme.mondomaine.com`).
 - **Plateforme** : enregistrement `A` de `plateforme.mondomaine.com` vers l'IP du serveur (cPanel → **Zone Editor**).
 - **Chaque site client** : enregistrement `A` de son domaine (et de `www`) vers la même IP. Dans cPanel → **Domains**, ajouter le domaine avec **le même Document Root** que l'application.
 - **Sous-domaines** (`client.mondomaine.com`) : un enregistrement `A` joker `*.mondomaine.com` vers l'IP, ou un enregistrement par sous-domaine ; renseigner `PLATFORM_BASE_DOMAIN=mondomaine.com`.
@@ -54,7 +55,7 @@ php bin/console.php restore /chemin/kibarou-AAAAMMJJ-HHMMSS-xxxxxx.zip --yes
 Remplace **toute** la base et réécrit les fichiers de l'archive ; l'archive est validée entièrement avant la moindre modification (chemins hors dossier autorisé, scripts, `.htaccess` refusés). Procédure sûre : (1) faire une sauvegarde de l'état actuel, (2) restaurer, (3) `php bin/console.php doctor`, (4) vérifier un site et une connexion. **Testez une restauration sur un environnement de recette avant d'en avoir besoin.**
 
 ## 11. Mise à jour
-1. Sauvegarde (§9). 2. Décompresser la nouvelle archive **par-dessus** en conservant `.env`, `storage/` et `public/uploads/` (ne pas les écraser). 3. `php bin/console.php migrate`. 4. `php bin/console.php doctor`.
+1. Sauvegarde (§9). 2. Décompresser la nouvelle archive **par-dessus** (elle ne contient ni `.env` ni données : `.env`, `storage/` et `public/uploads/` sont conservés). **Supprimer ensuite `public/install.php`** qu'elle remet en place (il reste inactif tant que `.env` existe, mais n'a rien à faire en production). 3. `php bin/console.php migrate`. 4. `php bin/console.php doctor`.
 
 ## 12. Suppression d'un site
 `/platform/sites` → *Supprimer* (taper l'identifiant) : le site disparaît (404) mais ses données sont conservées. Purge définitive, irréversible : `php bin/console.php site:purge <slug> --yes` (efface données et fichiers du site, pas ceux des autres).

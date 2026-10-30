@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-use App\Controllers\AuthController;
+use App\Controllers\{AccountController, AuthController};
 use App\Controllers\Admin\{ContentController, EditorController, DashboardController, DevelopmentController as AdminDev, LandController as AdminLand, LandMediaController, LocationController, CategoryController, JournalController, MediaController, MenuController, UserController, AppointmentController, FormController as AdminForm, LeadController as AdminLead, ProjectController as AdminProject, ServiceController as AdminService, SettingsController};
 use App\Controllers\Frontend\{DevelopmentController, FormController, HomeController, LandController, LeadController, PageController, ProjectController, SeoController, ServiceController};
 use App\Core\Router;
@@ -45,6 +45,8 @@ return function (Router $r): void {
     $r->post('/admin/login', [AuthController::class, 'login']);
     $r->post('/admin/logout', [AuthController::class, 'logout']);
     $r->get('/admin', [DashboardController::class, 'index'], $member);
+    $r->get('/admin/compte', [AccountController::class, 'form'], $member);
+    $r->post('/admin/compte', [AccountController::class, 'save'], $member);
     $r->get('/admin/terrains', [AdminLand::class, 'index'], $view);
     $r->get('/admin/terrains/new', [AdminLand::class, 'create'], $manage);
     $r->post('/admin/terrains', [AdminLand::class, 'store'], $manage);

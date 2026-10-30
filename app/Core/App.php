@@ -5,7 +5,7 @@ namespace App\Core;
 
 use App\Controllers\Frontend\FallbackController;
 use App\Middleware\{ActivityLogMiddleware, CsrfMiddleware, TenantMiddleware};
-use App\Multisite\DomainManager;
+use App\Multisite\{DomainManager, TenantResolver};
 
 final class App
 {
@@ -18,7 +18,10 @@ final class App
         try {
             $this->c->set(Request::class, $req);
             $this->c->get(Session::class)->start($req->secure);
-            $isPlatform = $req->host === DomainManager::normalize(Env::get('PLATFORM_HOST', '') ?? '');
+            // The platform host serves /platform/*. If the same host is also a site's domain (single-domain install),
+            // every other path belongs to that site; on a platform host with no site, everything stays platform.
+            $isPlatform = $req->host === DomainManager::normalize(Env::get('PLATFORM_HOST', '') ?? '')
+                && (str_starts_with($req->path, '/platform') || $this->c->get(TenantResolver::class)->resolve($req->host) === null);
             $router = new Router();
             (require $this->root . ($isPlatform ? '/routes/platform.php' : '/routes/site.php'))($router);
             $match = $router->match($req->method, $req->path);

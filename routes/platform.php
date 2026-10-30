@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-use App\Controllers\{AuthController};
+use App\Controllers\{AccountController, AuthController};
 use App\Controllers\Platform\{BackupController, SiteController};
 use App\Core\Router;
 use App\Middleware\AuthMiddleware;
@@ -11,6 +11,8 @@ return function (Router $r): void {
     $r->get('/platform/login', [AuthController::class, 'form']);
     $r->post('/platform/login', [AuthController::class, 'login']);
     $r->post('/platform/logout', [AuthController::class, 'logout']);
+    $r->get('/platform/compte', [AccountController::class, 'form'], $auth);
+    $r->post('/platform/compte', [AccountController::class, 'save'], $auth);
     $r->get('/platform/sites', [SiteController::class, 'index'], $auth);
     $r->get('/platform/sites/new', [SiteController::class, 'create'], $auth);
     $r->post('/platform/sites', [SiteController::class, 'store'], $auth);

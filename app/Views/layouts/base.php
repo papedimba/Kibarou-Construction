@@ -108,7 +108,7 @@ $current = fn(string $u) => $u === '/admin' ? $path === '/admin' : ($path === $u
       <span class="spacer"></span>
       <?php if ($site): ?><a href="/"><?= \App\Blocks\Icons::svg('external-link', 16) ?>Voir le site</a><?php endif; ?>
       <?php if ($user): ?>
-        <span class="who"><?= e($user['name']) ?></span>
+        <a class="who" href="<?= $site ? '/admin/compte' : '/platform/compte' ?>"><?= e($user['name']) ?></a>
         <form method="post" action="<?= $site ? '/admin/logout' : '/platform/logout' ?>" class="inline"><?= csrf_field($csrf) ?><button class="link"><?= \App\Blocks\Icons::svg('log-out', 16) ?> Déconnexion</button></form>
       <?php endif; ?>
     </header>

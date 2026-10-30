@@ -2,7 +2,7 @@
 
 CMS multisite en PHP natif (8.2+), MySQL/MariaDB, sans framework ni service externe obligatoire. Premier site : KIBAROU CONSTRUCTION (BTP et vente de terrains, Côte d'Ivoire).
 
-**État** : plan de développement complet (lots 1 à 7), 127 tests PHPUnit, 9 scénarios Playwright, 41 contrôles de déploiement sur Apache. Écarts et travaux restants : [`docs/CONFORMITE.md`](docs/CONFORMITE.md).
+**État** : plan de développement complet (lots 1 à 7), 133 tests PHPUnit, 9 scénarios Playwright, 41 contrôles de déploiement sur Apache. Écarts et travaux restants : [`docs/CONFORMITE.md`](docs/CONFORMITE.md).
 
 ## Démarrer
 - **Installer en production** : [`docs/INSTALLATION.md`](docs/INSTALLATION.md) et [`docs/DEPLOYMENT_CPANEL.md`](docs/DEPLOYMENT_CPANEL.md) (`./bin/build-release.sh`, puis `install.php`).

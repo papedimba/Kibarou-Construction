@@ -46,6 +46,32 @@ final class AuthService
         return null;
     }
 
+    /** @return string|null error message, null when the password was changed. Wrong "current password" attempts count toward the login throttle. */
+    public function changePassword(array $user, string $current, string $new, string $confirm, string $ip): ?string
+    {
+        $row = $this->db->one('SELECT email, password_hash FROM users WHERE id = ?', [$user['id']]);
+        if ($this->throttled($row['email'], $ip)) {
+            return 'Trop de tentatives. Réessayez dans quelques minutes.';
+        }
+        if (!password_verify($current, $row['password_hash'])) {
+            $this->db->insert('login_attempts', ['email' => $row['email'], 'ip' => $ip]);
+            return 'Mot de passe actuel incorrect.';
+        }
+        if (mb_strlen($new) < 12) {
+            return 'Le nouveau mot de passe doit contenir 12 caractères minimum.';
+        }
+        if ($new !== $confirm) {
+            return 'La confirmation ne correspond pas.';
+        }
+        if ($new === $current) {
+            return 'Choisissez un mot de passe différent de l\'actuel.';
+        }
+        $this->db->run('UPDATE users SET password_hash = ? WHERE id = ?', [password_hash($new, PASSWORD_DEFAULT), $user['id']]);
+        $this->db->run('DELETE FROM login_attempts WHERE email = ?', [$row['email']]);
+        $this->session->regenerate();
+        return null;
+    }
+
     public function user(): ?array
     {
         $id = $this->session->get('user_id');

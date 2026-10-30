@@ -3,6 +3,9 @@
 ## Connexion et rôles
 Administration : `https://votre-site/admin`. Chaque personne a un rôle : **Administrateur de site** (tout), **Responsable foncier** (terrains, lotissements, localisations), **Responsable commercial** (prospects, visites), **Responsable BTP** (services, réalisations), **Éditeur** (pages, articles, médias, menus, formulaires). Le menu n'affiche que ce que votre rôle permet. L'administrateur gère l'équipe dans **Utilisateurs** (ajouter, changer le rôle, réinitialiser un mot de passe, retirer l'accès ; le dernier administrateur ne peut pas être retiré).
 
+## Mon compte
+Cliquez sur votre nom en haut à droite : **changer mon mot de passe** (12 caractères minimum, mot de passe actuel demandé). À faire dès la première connexion si l'installation a été faite sans HTTPS.
+
 ## Terrains
 **Terrains → Ajouter** : référence (unique), désignation, catégorie, localisation, superficie (m²), prix (FCFA), statut, GPS (facultatif), caractéristiques, informations foncières (uniquement si confirmées), publication. Le statut commercial (disponible, en cours de réservation, réservé, vendu, indisponible) se change depuis la liste ; un terrain vendu ou non publié disparaît du catalogue.
 **Photos/docs** (sur chaque ligne) : photos, **documents fonciers** (ACD, titre foncier, attestations, plans…), fiche **PDF**, **QR code** (SVG pour l'impression, PNG). Un document est « non vérifié » tant que vous ne cliquez pas *Marquer vérifié* ; il n'est publié que s'il est « public ». Les documents sont stockés hors du site public.

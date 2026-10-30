@@ -100,4 +100,6 @@ Tout ce qui figure aux lots 2 à 7. Le logo officiel est dans `public/assets/ima
 - **Deux `.htaccess`** : `public/` (cas recommandé, domaine pointé sur `public/`) et racine (cas `public_html` imposé). Le test Apache a trouvé un défaut : ma règle « seuls `index.php`/`install.php` sont des scripts publics » comparait l'URL d'origine et se bloquait elle-même après la réécriture interne (403 partout) ; elle compare désormais le chemin de la cible.
 - **Suppression de site en deux temps** (statut `deleted` puis purge CLI) ; la purge supprime explicitement les lignes par `site_id` car les clés étrangères composites interdisent un ordre de cascade simple.
 - **Journal d'activité par middleware** : un seul point de code, aucune modification des contrôleurs, aucun contenu stocké.
+- **Installation à un seul domaine** (découvert lors du premier déploiement réel) : si `PLATFORM_HOST` est aussi le domaine d'un site, `/platform/*` reste la plateforme et le reste sert le site. Auparavant, tout l'hôte était traité comme plateforme et le site public ne s'affichait pas.
+- **Mon compte** : changement de mot de passe en libre-service (mot de passe actuel exigé, tentatives comptées comme une connexion).
 - **Archive de livraison** : `bin/build-release.sh` (vendor de production inclus, car un hébergement mutualisé n'a souvent pas Composer).

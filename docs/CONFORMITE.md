@@ -25,7 +25,7 @@
 | 18 | Système de sauvegarde | ✅ | Zip base + fichiers, manifeste, cron, restauration validée (anti zip-slip) |
 | 19 | Installateur cPanel | ✅ | Assistant web auto-verrouillé + test Apache de bout en bout |
 | 20 | Documentation | ✅ | README, INSTALLATION, ARCHITECTURE, DATABASE, SECURITY, DEPLOYMENT_CPANEL, USER_GUIDE, TESTING, DESIGN, CONFORMITE |
-| 21 | Tests automatisés | ✅ | 127 PHPUnit, 9 scénarios Playwright, 41 contrôles de déploiement |
+| 21 | Tests automatisés | ✅ | 133 PHPUnit, 9 scénarios Playwright, 41 contrôles de déploiement |
 
 ## Points du cahier des charges non réalisés ou partiels
 - **Photographies réelles** : aucune incluse (banques d'images bloquées pendant le développement). Les trois scènes d'accueil sont dessinées et remplaçables (Réglages). À fournir par le client.
