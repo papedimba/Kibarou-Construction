@@ -5,16 +5,7 @@
 
   // Phone: the menu starts collapsed (it stays open, fully usable, without script).
   const menu = document.querySelector('.site-head .menu');
-  if (menu && matchMedia('(max-width: 900px)').matches) menu.removeAttribute('open');
-
-  // Scene follows the section being read.
-  const stage = document.querySelector('.stage');
-  if (stage && 'IntersectionObserver' in window) {
-    const so = new IntersectionObserver((entries) => {
-      entries.forEach((e) => { if (e.isIntersecting) stage.dataset.scene = e.target.dataset.scene; });
-    }, { rootMargin: '-45% 0px -45% 0px' });
-    document.querySelectorAll('.reading [data-scene]').forEach((s) => so.observe(s));
-  }
+  if (menu && matchMedia('(max-width: 960px)').matches) menu.removeAttribute('open');
 
   // Staggered entrance of each section's parts, once.
   const items = document.querySelectorAll('.reveal');

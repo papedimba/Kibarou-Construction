@@ -1,4 +1,3 @@
-<h1><?= e($d['name']) ?></h1>
 <?php if ($location): ?><p><?= e($location) ?></p><?php endif; ?>
 <?= text_html($d['description']) ?>
 <table>

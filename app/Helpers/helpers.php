@@ -56,3 +56,17 @@ function badge(string $status, ?string $label = null): string
 {
     return '<span class="badge b-' . status_tone($status) . '">' . e($label ?? status_label($status)) . '</span>';
 }
+
+/**
+ * A photo (["url" => …]) or, without one, a drawn scene (1 land, 2 site, 3 buildings). Decorative drawings are aria-hidden.
+ */
+function picture(?array $photo, int $scene, string $alt = '', string $class = '', bool $eager = false): string
+{
+    static $scenes, $n = 0;
+    if ($photo) {
+        return '<img src="' . e($photo['url']) . '" alt="' . e($alt) . '" class="' . e($class) . '"' . ($eager ? ' fetchpriority="high"' : ' loading="lazy"') . '>';
+    }
+    $scenes ??= require dirname(__DIR__) . '/Views/frontend/_scenes.php';
+    $svg = str_replace('{uid}', (string) ++$n, $scenes[$scene] ?? $scenes[1]); // unique pattern ids when several drawings share a page
+    return '<span class="drawn ' . e($class) . '" aria-hidden="true">' . $svg . '</span>';
+}

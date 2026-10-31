@@ -41,7 +41,8 @@ final class CmsTest extends DbTestCase
     {
         $this->assertSame(302, $this->savePage('alpha.test')->status);
         $this->assertStringContainsString('<p>Bonjour</p>', $this->call('GET', '/a-propos', 'alpha.test')->body);
-        $this->assertSame(404, $this->call('GET', '/a-propos', 'beta.test')->status);
+        // /a-propos is a built-in page: on the other site it shows that site's own template, never alpha's page
+        $this->assertStringNotContainsString('Bonjour', $this->call('GET', '/a-propos', 'beta.test')->body);
     }
 
     public function testSameSlugAllowedOnTwoSitesAndDraftIsHidden(): void
@@ -49,7 +50,7 @@ final class CmsTest extends DbTestCase
         $this->savePage('alpha.test');
         $this->login('beta.test', 'admin@beta.test');
         $this->assertSame(302, $this->savePage('beta.test', ['status' => 'draft'])->status);
-        $this->assertSame(404, $this->call('GET', '/a-propos', 'beta.test')->status);
+        $this->assertStringNotContainsString('Deuxième paragraphe', $this->call('GET', '/a-propos', 'beta.test')->body); // draft not served
         $this->assertSame(422, $this->savePage('beta.test', ['title' => 'Dup'] + ['slug' => 'a-propos'])->status);
     }
 

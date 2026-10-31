@@ -2,8 +2,8 @@
 declare(strict_types=1);
 
 use App\Controllers\{AccountController, AuthController};
-use App\Controllers\Admin\{ContentController, EditorController, DashboardController, DevelopmentController as AdminDev, LandController as AdminLand, LandMediaController, LocationController, CategoryController, JournalController, MediaController, MenuController, UserController, AppointmentController, FormController as AdminForm, LeadController as AdminLead, ProjectController as AdminProject, ServiceController as AdminService, SettingsController};
-use App\Controllers\Frontend\{DevelopmentController, FormController, HomeController, LandController, LeadController, PageController, ProjectController, SeoController, ServiceController};
+use App\Controllers\Admin\{ContentController, EditorController, DashboardController, DevelopmentController as AdminDev, LandController as AdminLand, LandMediaController, LocationController, CategoryController, JournalController, TextsController, MediaController, MenuController, UserController, AppointmentController, FormController as AdminForm, LeadController as AdminLead, ProjectController as AdminProject, ServiceController as AdminService, SettingsController};
+use App\Controllers\Frontend\{AboutController, DevelopmentController, FormController, HomeController, LandController, LeadController, PageController, ProjectController, SeoController, ServiceController};
 use App\Core\Router;
 use App\Middleware\{AuthMiddleware, PermissionMiddleware};
 
@@ -29,6 +29,7 @@ return function (Router $r): void {
     $r->get('/terrains/{slug}', [LandController::class, 'show']);
     $r->get('/terrains/{slug}/fiche.pdf', [LandController::class, 'pdf']);
     $r->get('/terrains/{slug}/documents/{doc}', [LandController::class, 'document']);
+    $r->get('/a-propos', [AboutController::class, 'show']);
     $r->get('/contact', [LeadController::class, 'contact']);
     $r->post('/contact', [LeadController::class, 'submit']);
     $r->get('/demandes/merci', [LeadController::class, 'thanks']);
@@ -69,6 +70,8 @@ return function (Router $r): void {
     $r->post('/admin/pages/{id}/publier', [EditorController::class, 'publish'], $content);
     $r->get('/admin/pages/{id}/apercu', [EditorController::class, 'preview'], $content);
     $r->post('/admin/editeur/rendu', [EditorController::class, 'render'], $content);
+    $r->get('/admin/textes', [TextsController::class, 'form'], $content);
+    $r->post('/admin/textes', [TextsController::class, 'save'], $content);
     $r->get('/admin/media', [MediaController::class, 'index'], $content);
     $r->post('/admin/media', [MediaController::class, 'upload'], $content);
     $r->post('/admin/media/{id}/delete', [MediaController::class, 'destroy'], $content);

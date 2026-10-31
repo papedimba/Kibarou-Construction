@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use App\Content\SiteTexts;
 use App\Multisite\TenantContext;
 use App\Repositories\{MenuRepository, PageRepository, SettingsRepository};
 use App\Services\{AuthService, Rbac};
@@ -10,7 +11,7 @@ use App\Services\{AuthService, Rbac};
 /** Renders a view with the common layout data (csrf token, flash, current site/user). */
 final class Page
 {
-    public function __construct(private Session $session, private TenantContext $tenant, private AuthService $auth, private Request $req, private SettingsRepository $settings, private MenuRepository $menus, private PageRepository $pages, private Rbac $rbac)
+    public function __construct(private Session $session, private TenantContext $tenant, private AuthService $auth, private Request $req, private SettingsRepository $settings, private MenuRepository $menus, private PageRepository $pages, private Rbac $rbac, private SiteTexts $texts)
     {
     }
 
@@ -25,6 +26,8 @@ final class Page
             'footerMenu' => $public ? $this->menus->items('footer') : [],
             'perms' => $user && $has ? $this->rbac->permissions($user, $this->tenant->id()) : ($user ? ['*'] : []),
             'currentPath' => $this->req->path,
+            'view' => $tpl,
+            'texts' => $public ? $this->texts : null,
             'authScreen' => str_starts_with($tpl, 'auth/'),
             'navDefault' => $public ? $this->defaultNav() : [],
             'canonical' => $this->req->url(),
@@ -36,6 +39,11 @@ final class Page
         ]), $status);
     }
 
+    public function siteName(): ?string
+    {
+        return $this->tenant->has() ? (string) $this->tenant->site()['name'] : null;
+    }
+
     public function flash(string $m): void
     {
         $this->session->flash($m);
@@ -44,10 +52,6 @@ final class Page
     /** Navigation shown while the site has no custom header menu: the sections the site really has. */
     private function defaultNav(): array
     {
-        $nav = [['label' => 'Accueil', 'url' => '/']];
-        if ($this->pages->findPublishedBySlug('a-propos')) {
-            $nav[] = ['label' => 'À propos', 'url' => '/a-propos'];
-        }
-        return [...$nav, ['label' => 'Nos terrains', 'url' => '/terrains'], ['label' => 'Nos services BTP', 'url' => '/services'], ['label' => 'Nos réalisations', 'url' => '/realisations'], ['label' => 'Actualités', 'url' => '/actualites'], ['label' => 'Contact', 'url' => '/contact']];
+        return [['label' => 'Accueil', 'url' => '/'], ['label' => 'À propos', 'url' => '/a-propos'], ['label' => 'Nos terrains', 'url' => '/terrains'], ['label' => 'Nos services BTP', 'url' => '/services'], ['label' => 'Nos réalisations', 'url' => '/realisations'], ['label' => 'Actualités', 'url' => '/actualites'], ['label' => 'Contact', 'url' => '/contact']];
     }
 }

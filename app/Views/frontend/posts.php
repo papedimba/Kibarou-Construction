@@ -1,4 +1,3 @@
-<h1>Actualités</h1>
 <?php if (!$r['items']): ?><p>Aucun article publié pour le moment.</p><?php endif; ?>
 <?php foreach ($r['items'] as $a): ?>
   <article class="card"><a href="/actualites/<?= e($a['slug']) ?>"><strong><?= e($a['title']) ?></strong></a>

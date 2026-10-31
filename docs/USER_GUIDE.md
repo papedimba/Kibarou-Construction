@@ -19,7 +19,7 @@ Un terrain lié à des demandes de prospects ne peut pas être supprimé : passe
 Les demandes du site (informations, visite, rappel, devis, partenariat, formulaires) arrivent dans **Prospects** avec une référence `LD-000123`. Ouvrez une fiche : changer le **statut**, **affecter** un responsable, ajouter des **notes** internes, **programmer une visite** (calendrier dans **Visites**), consulter l'**historique**. Recherche, filtres et **export CSV** (les cellules dangereuses sont neutralisées). Une demande ne constitue jamais une réservation.
 
 ## Contenu
-**Pages** et **Articles** (titre, adresse, texte simple, SEO, brouillon/publié, versions des pages). **Médias** : images avec texte alternatif (ALT). **Menus** : liens d'en-tête/pied de page et **redirections 301**. **Formulaires** : un champ par ligne `Libellé | type | obligatoire (1/0) | options` ; le formulaire est publié sur `/f/adresse` et les réponses sont dans l'administration. **Réglages** : coordonnées, WhatsApp (le bouton n'apparaît que si renseigné), logo, thème, page d'accueil, photos d'accueil.
+**Pages** et **Articles** (titre, adresse, texte simple, SEO, brouillon/publié, versions des pages). **Médias** : images avec texte alternatif (ALT). **Menus** : liens d'en-tête/pied de page et **redirections 301**. **Formulaires** : un champ par ligne `Libellé | type | obligatoire (1/0) | options` ; le formulaire est publié sur `/f/adresse` et les réponses sont dans l'administration. **Réglages** : coordonnées, WhatsApp (le bouton n'apparaît que si renseigné), logo, thème, page d'accueil.
 
 ## Plateforme (super administrateur)
 `/platform` : créer un site (nom, identifiant, domaine, administrateur), le suspendre/réactiver, ajouter des domaines, voir ses chiffres, le supprimer (taper son identifiant) et gérer les **sauvegardes**.
@@ -41,5 +41,10 @@ Les demandes du site (informations, visite, rappel, devis, partenariat, formulai
 - Pour utiliser une page comme **accueil** : Réglages → « Page d'accueil » → identifiant de la page (elle doit être publiée).
 - Blocs « Terrain vedette », « Galerie immobilière » : saisissez la **référence** du terrain publié. « Galerie de chantiers », « Présentation d'un projet » : l'**identifiant** (adresse) de la réalisation publiée.
 
-## Photos de l'accueil
-L'accueil affiche trois scènes dessinées (terrain, chantier, bâtiment). Pour les remplacer par vos photographies : ajoutez-les dans **Médias**, puis **Réglages → Accueil, photo « Terrain / Chantier / Bâtiment »**. Utilisez des images à votre nom ou dont vous avez les droits ; une photo d'un autre chantier ne doit pas être présentée comme une réalisation de l'entreprise.
+## Textes et photos du site
+**Administration → Textes et photos** regroupe les textes de l'accueil et de la page **À propos** (présentation, démarche, mission, vision, valeurs, engagements, histoire, équipe) et les photos de chaque section.
+- Chaque texte porte une pastille : **Provisoire, à remplacer** (texte générique rédigé pour démarrer, sans chiffre ni référence inventés), **Cahier des charges** (repris du cahier), **Vide, section masquée** (Histoire, Équipe : la section n'apparaît pas tant qu'elle est vide) ou **Personnalisé**.
+- Vider un champ rétablit le texte par défaut. `{site}` est remplacé par le nom du site.
+- Les chiffres de l'accueil (terrains disponibles, lotissements, services, réalisations) sont calculés depuis vos données ; un chiffre à zéro n'est pas affiché.
+- Photos : choisissez une image de la **Médiathèque** pour chaque emplacement (accueil, terrains, BTP, appel à l'action, À propos, bandeau des pages). Sans choix, une photo d'illustration (créditée en pied de page) ou un dessin est affiché. Une photo d'illustration ou d'un autre chantier ne doit jamais être présentée comme une réalisation de l'entreprise.
+- Pour une page À propos entièrement libre : créez une page publiée d'adresse `a-propos`, elle remplace le modèle.

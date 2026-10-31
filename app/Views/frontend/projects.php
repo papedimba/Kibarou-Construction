@@ -1,4 +1,3 @@
-<h1>Nos réalisations</h1>
 <?php if (!$items): ?><p>Nos réalisations seront présentées ici.</p><?php endif; ?>
 <div class="grid">
 <?php foreach ($items as $r): ?>

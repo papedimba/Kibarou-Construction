@@ -37,11 +37,6 @@ final class SettingsController
         if ($v['logo_url'] !== '' && !preg_match('#^/(uploads|assets)/[A-Za-z0-9_./-]+$#', $v['logo_url']) || str_contains($v['logo_url'], '..')) {
             $e['logo_url'] = 'Logo : chemin interne attendu (/uploads/… ou /assets/…).';
         }
-        foreach ([1, 2, 3] as $n) { // an image id must exist in this site's own library
-            if ($v["stage_$n"] !== '' && (!ctype_digit($v["stage_$n"]) || !$this->media->find((int) $v["stage_$n"]))) {
-                $e["stage_$n"] = "Photo $n : média introuvable.";
-            }
-        }
         if ($v['home_page'] !== '' && !preg_match('/^[a-z0-9-]{1,190}$/', $v['home_page'])) {
             $e['home_page'] = 'Page d\'accueil : identifiant de page invalide.';
         }

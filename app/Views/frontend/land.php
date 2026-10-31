@@ -1,45 +1,56 @@
-<small><?= e($land['reference']) ?> · <?= e($land['category_name'] ?? '') ?></small>
-<h1><?= e($land['title']) ?></h1>
-<?php if ($images): ?>
-<div class="grid">
-<?php foreach ($images as $i): ?><img src="/uploads/<?= (int) $site['id'] ?>/<?= e($i['filename']) ?>" alt="<?= e($i['alt'] ?: $land['title']) ?>" loading="lazy" class="thumb"><?php endforeach; ?>
+<?php
+$statusText = status_label($land['status']);
+$wa = preg_replace('/\D/', '', $settings['whatsapp'] ?? '');
+?>
+<div class="land-top">
+  <div class="gallery">
+    <?php if ($images): ?>
+      <img class="gallery-main" src="/uploads/<?= (int) $site['id'] ?>/<?= e($images[0]['filename']) ?>" alt="<?= e($images[0]['alt'] ?: $land['title']) ?>" fetchpriority="high">
+      <?php if (count($images) > 1): ?><div class="gallery-thumbs"><?php foreach (array_slice($images, 1) as $i): ?><img src="/uploads/<?= (int) $site['id'] ?>/<?= e($i['filename']) ?>" alt="<?= e($i['alt'] ?: $land['title']) ?>" loading="lazy" class="thumb"><?php endforeach; ?></div><?php endif; ?>
+    <?php else: ?>
+      <?= picture(null, 1, '', 'gallery-main') ?>
+    <?php endif; ?>
+  </div>
+  <aside class="facts">
+    <p class="facts-ref"><?= e($land['reference']) ?><?= !empty($land['category_name']) ? ' · ' . e($land['category_name']) : '' ?></p>
+    <p class="facts-price"><?= e(fcfa($land['price_xof'])) ?></p>
+    <?php if ((int) $land['area_m2'] > 0): ?><p class="facts-sub">≈ <?= e(fcfa((int) round($land['price_xof'] / $land['area_m2']))) ?> / m²</p><?php endif; ?>
+    <dl>
+      <div><dt>Superficie</dt><dd><?= number_format((int) $land['area_m2'], 0, ',', ' ') ?> m²</dd></div>
+      <div><dt>Disponibilité</dt><dd><?= badge($land['status']) ?></dd></div>
+      <?php if ($location): ?><div><dt>Localisation</dt><dd><?= e($location) ?></dd></div><?php endif; ?>
+      <div><dt>Référence</dt><dd><?= e($land['reference']) ?></dd></div>
+    </dl>
+    <div class="facts-actions">
+      <a class="btn" href="/contact?terrain=<?= e($land['slug']) ?>&amp;type=info">Demander des informations</a>
+      <a class="btn btn-outline" href="/contact?terrain=<?= e($land['slug']) ?>&amp;type=visit">Programmer une visite</a>
+      <a class="btn btn-outline" href="/contact?terrain=<?= e($land['slug']) ?>&amp;type=callback">Être contacté</a>
+      <?php if ($wa !== ''): ?><a class="btn btn-wa" rel="noopener" href="https://wa.me/<?= e($wa) ?>?text=<?= e(rawurlencode("Bonjour, je souhaite des informations sur le terrain {$land['reference']} : " . ($canonical ?? ''))) ?>">Contacter sur WhatsApp</a><?php endif; ?>
+    </div>
+    <a class="link-arrow" href="/terrains/<?= e($land['slug']) ?>/fiche.pdf">Télécharger la fiche PDF</a>
+    <p class="facts-note">Une demande ne constitue pas une réservation.</p>
+  </aside>
 </div>
-<?php endif; ?>
-<p><strong><?= (int) $land['area_m2'] ?> m²</strong> — <strong><?= e(fcfa($land['price_xof'])) ?></strong>
-  <?php if ((int) $land['area_m2'] > 0): ?><small>(≈ <?= e(fcfa((int) round($land['price_xof'] / $land['area_m2']))) ?> / m²)</small><?php endif; ?></p>
-<p>Disponibilité : <strong><?= e(['available' => 'Disponible', 'reserving' => 'En cours de réservation', 'reserved' => 'Réservé', 'sold' => 'Vendu', 'unavailable' => 'Indisponible'][$land['status']] ?? $land['status']) ?></strong></p>
-<?php if ($location): ?><p>Localisation : <?= e($location) ?></p><?php endif; ?>
-<?php if ($mapUrl): ?><p>Coordonnées GPS : <?= e((string) $land['latitude']) ?>, <?= e((string) $land['longitude']) ?> — <a href="<?= e($mapUrl) ?>" rel="noopener">Voir sur la carte</a></p><?php endif; ?>
-<?= text_html($land['description']) ?>
-<?php if (!empty($land['features'])): ?><h2>Caractéristiques</h2><?= text_html($land['features']) ?><?php endif; ?>
-<?php if (!empty($land['land_info'])): ?><h2>Informations foncières</h2><?= text_html($land['land_info']) ?><?php endif; ?>
-<?php if ($documents): ?>
-<h2>Documents</h2>
-<ul>
-<?php foreach ($documents as $d): ?>
-  <li><a href="/terrains/<?= e($land['slug']) ?>/documents/<?= (int) $d['id'] ?>"><?= e($docTypes[$d['type']] ?? $d['type']) ?></a>
-    — <?= $d['verification'] === 'verified' ? 'document vérifié' : 'en attente de vérification' ?></li>
-<?php endforeach; ?>
-</ul>
-<?php endif; ?>
-<h2>Ce terrain vous intéresse ?</h2>
-<p>
-  <a class="btn" href="/contact?terrain=<?= e($land['slug']) ?>&amp;type=info">Demander des informations</a>
-  <a class="btn" href="/contact?terrain=<?= e($land['slug']) ?>&amp;type=visit">Programmer une visite</a>
-  <a class="btn" href="/contact?terrain=<?= e($land['slug']) ?>&amp;type=callback">Être contacté</a>
-  <?php $wa = preg_replace('/\D/', '', $settings['whatsapp'] ?? ''); if ($wa !== ''): ?>
-    <a class="btn" rel="noopener" href="https://wa.me/<?= e($wa) ?>?text=<?= e(rawurlencode("Bonjour, je souhaite des informations sur le terrain {$land['reference']} : " . ($canonical ?? ''))) ?>">Contacter sur WhatsApp</a>
+
+<div class="land-body">
+  <?php if (!empty($land['description'])): ?><section><h2>Description</h2><?= text_html($land['description']) ?></section><?php endif; ?>
+  <?php if (!empty($land['features'])): ?><section><h2>Caractéristiques</h2><?= text_html($land['features']) ?></section><?php endif; ?>
+  <?php if (!empty($land['land_info'])): ?><section><h2>Informations foncières</h2><?= text_html($land['land_info']) ?></section><?php endif; ?>
+  <?php if ($mapUrl): ?><section><h2>Localisation</h2><p>Coordonnées GPS : <?= e((string) $land['latitude']) ?>, <?= e((string) $land['longitude']) ?> — <a href="<?= e($mapUrl) ?>" rel="noopener">Voir sur la carte</a></p></section><?php endif; ?>
+  <?php if ($documents): ?>
+  <section><h2>Documents</h2>
+    <ul class="docs">
+      <?php foreach ($documents as $d): ?><li><?= \App\Blocks\Icons::svg('file-text', 20) ?><a href="/terrains/<?= e($land['slug']) ?>/documents/<?= (int) $d['id'] ?>"><?= e($docTypes[$d['type']] ?? $d['type']) ?></a> — <?= $d['verification'] === 'verified' ? 'document vérifié' : 'en attente de vérification' ?></li><?php endforeach; ?>
+    </ul>
+  </section>
   <?php endif; ?>
-</p>
-<p><a class="btn" href="/terrains/<?= e($land['slug']) ?>/fiche.pdf">Télécharger la fiche PDF</a></p>
-<?php if ($similar): ?>
-<h2>Terrains similaires</h2>
-<div class="grid">
-<?php foreach ($similar as $l): ?>
-  <a class="card" href="/terrains/<?= e($l['slug']) ?>">
-    <?php if (!empty($covers[(int) $l['id']])): ?><img src="/uploads/<?= (int) $site['id'] ?>/<?= e($covers[(int) $l['id']]) ?>" alt="<?= e($l['title']) ?>" loading="lazy" class="thumb"><?php endif; ?>
-    <strong><?= e($l['title']) ?></strong><span><?= (int) $l['area_m2'] ?> m² — <?= e(fcfa($l['price_xof'])) ?></span></a>
-<?php endforeach; ?>
 </div>
+
+<?php if ($similar): ?>
+<section class="section">
+  <h2>Terrains similaires</h2>
+  <div class="cards">
+    <?php foreach ($similar as $l): $l['category_name'] = $l['category_name'] ?? null; require __DIR__ . '/_land_card.php'; endforeach; ?>
+  </div>
+</section>
 <?php endif; ?>
-<p><a href="/terrains">← Retour au catalogue</a></p>

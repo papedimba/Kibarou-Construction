@@ -21,16 +21,21 @@ final class LandBtpTest extends DbTestCase
         $this->a = $this->makeSite('alpha', 'alpha.test');
         $this->b = $this->makeSite('beta', 'beta.test');
         $this->login('alpha.test', 'admin@alpha.test');
+        $this->before = $this->files();
+    }
+
+    /** Files that existed before the test (e.g. the dev site's own uploads, which share site ids 1 and 2). */
+    private array $before = [];
+
+    private function files(): array
+    {
+        return array_merge(...array_map(fn($b) => glob(dirname(__DIR__, 2) . "/$b/*/*") ?: [], ['storage/private', 'public/uploads']));
     }
 
     protected function tearDown(): void
     {
-        foreach ([$this->a, $this->b] as $id) { // keep the working tree free of test files
-            foreach (['storage/private', 'public/uploads'] as $base) {
-                foreach (glob(dirname(__DIR__, 2) . "/$base/$id/*") ?: [] as $f) {
-                    @unlink($f);
-                }
-            }
+        foreach (array_diff($this->files(), $this->before) as $f) { // remove only what this test created
+            @unlink($f);
         }
     }
 

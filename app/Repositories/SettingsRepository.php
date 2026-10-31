@@ -6,7 +6,7 @@ namespace App\Repositories;
 final class SettingsRepository extends TenantRepository
 {
     public const THEMES = ['corporate-premium' => 'Corporate Premium', 'minimaliste-moderne' => 'Minimaliste Moderne', 'elegance-prestige' => 'Élégance & Prestige'];
-    public const KEYS = ['tagline', 'phone', 'email', 'whatsapp', 'address', 'logo_url', 'theme', 'meta_description', 'home_page', 'stage_1', 'stage_2', 'stage_3'];
+    public const KEYS = ['tagline', 'phone', 'email', 'whatsapp', 'address', 'logo_url', 'theme', 'meta_description', 'home_page'];
     protected string $table = 'settings';
     protected array $columns = [];
 

@@ -1,4 +1,3 @@
-<h1><?= e($f['name']) ?></h1>
 <?php if (!empty($errors['_form'])): ?><p class="error" role="alert"><?= e($errors['_form']) ?></p><?php endif; ?>
 <form method="post" action="/f/<?= e($f['slug']) ?>" class="card">
   <?= csrf_field($csrf) ?><?= $spam ?>

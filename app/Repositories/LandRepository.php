@@ -73,13 +73,13 @@ final class LandRepository extends TenantRepository
                 $p[] = (int) $f[$k];
             }
         }
-        $from = 'FROM land_properties l LEFT JOIN land_categories c ON c.site_id = l.site_id AND c.id = l.category_id WHERE ' . implode(' AND ', $w);
+        $from = 'FROM land_properties l LEFT JOIN land_categories c ON c.site_id = l.site_id AND c.id = l.category_id LEFT JOIN locations loc ON loc.site_id = l.site_id AND loc.id = l.location_id WHERE ' . implode(' AND ', $w);
         $total = (int) $this->db->value("SELECT COUNT(*) $from", $p);
         $pages = max(1, (int) ceil($total / $perPage));
         $page = min(max(1, $page), $pages);
         $order = self::SORTS[$f['sort'] ?? ''] ?? self::SORTS['recent'];
         $limit = 'LIMIT ' . (int) $perPage . ' OFFSET ' . (($page - 1) * $perPage);
-        $items = $this->db->all("SELECT l.*, c.name AS category_name $from ORDER BY $order $limit", $p);
+        $items = $this->db->all("SELECT l.*, c.name AS category_name, loc.name AS location_name $from ORDER BY $order $limit", $p);
         return compact('items', 'total', 'pages', 'page');
     }
 

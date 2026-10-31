@@ -23,7 +23,7 @@ $nav = $headerMenu ?: ($navDefault ?? []);
 <meta property="og:url" content="<?= e($canonical ?? '') ?>">
 <?php if ($desc !== ''): ?><meta property="og:description" content="<?= e($desc) ?>"><?php endif; ?>
 <?php if (!empty($jsonld)): ?><script type="application/ld+json"><?= json_encode($jsonld, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) ?></script><?php endif; ?>
-<link rel="preload" href="/assets/fonts/literata-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/ibm-plex-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <?php endif; ?>
 <?php if (!$public || !empty($preview)): ?><meta name="robots" content="noindex"><?php endif; ?>
 <link rel="stylesheet" href="<?= $public ? '/assets/css/site.css' : '/assets/css/admin.css' ?>">
@@ -35,43 +35,85 @@ $nav = $headerMenu ?: ($navDefault ?? []);
 <body class="<?= e($bodyClass ?? '') ?>">
 <?php if ($public): ?>
 <a class="skip" href="#contenu">Aller au contenu</a>
+<?php
+$tpl = $view ?? '';
+$path = $currentPath ?? '/';
+$isHome = $tpl === 'frontend/home';
+$banner = !$isHome && !str_starts_with($tpl, 'errors/') && empty($blocksHtml);
+$parents = ['terrains' => ['Nos terrains', '/terrains'], 'services' => ['Nos services BTP', '/services'], 'realisations' => ['Nos réalisations', '/realisations'], 'lotissements' => ['Nos lotissements', '/lotissements'], 'actualites' => ['Actualités', '/actualites']];
+$seg = explode('/', trim($path, '/'));
+$parent = count($seg) > 1 && isset($parents[$seg[0]]) ? $parents[$seg[0]] : null;
+$phone = $settings['phone'] ?? ''; $mail = $settings['email'] ?? '';
+$isActive = fn(string $u) => $u === '/' ? $path === '/' : ($path === $u || str_starts_with($path, $u . '/'));
+?>
+<div class="topbar<?= $phone || $mail || $wa !== '' || $user ? '' : ' no-contact' ?>">
+  <div class="wrap">
+    <span><?= e($settings['tagline'] ?? '') ?: 'Construction · Travaux publics · Terrains' ?> — Côte d'Ivoire</span>
+    <span class="topbar-links">
+      <?php if ($phone): ?><a href="tel:<?= e(preg_replace('/[^0-9+]/', '', $phone)) ?>"><?= \App\Blocks\Icons::svg('phone', 15) ?><?= e($phone) ?></a><?php endif; ?>
+      <?php if ($mail): ?><a href="mailto:<?= e($mail) ?>"><?= \App\Blocks\Icons::svg('mail', 15) ?><?= e($mail) ?></a><?php endif; ?>
+      <?php if ($wa !== ''): ?><a href="https://wa.me/<?= e($wa) ?>" rel="noopener"><?= \App\Blocks\Icons::svg('message-circle', 15) ?>WhatsApp</a><?php endif; ?>
+      <?php if ($user): ?><a href="/admin">Administration</a><?php endif; ?>
+    </span>
+  </div>
+</div>
 <header class="site-head">
-  <a class="brand" href="/" aria-label="<?= e($site['name']) ?> — accueil">
-    <?php if (!empty($settings['logo_url'])): ?><img src="<?= e($settings['logo_url']) ?>" alt="<?= e($site['name']) ?>" class="logo" width="96" height="64"><?php else: ?><span class="brand-name"><?= e($site['name']) ?></span><?php endif; ?>
-  </a>
-  <details class="menu" open>
-    <summary>Menu</summary>
-    <nav aria-label="Navigation principale">
-      <?php foreach ($nav as $i): ?><a href="<?= e($i['url']) ?>"><?= e($i['label']) ?></a><?php endforeach; ?>
-    </nav>
-  </details>
-  <div class="actions">
-    <?php if ($user): ?><a href="/admin" class="small">Administration</a><?php endif; ?>
-    <a class="btn" href="/terrains">Trouver un terrain</a>
-    <?php if ($user): ?><form method="post" action="/admin/logout" class="inline"><?= csrf_field($csrf) ?><button class="link">Déconnexion</button></form><?php endif; ?>
+  <div class="wrap head-row">
+    <a class="brand" href="/" aria-label="<?= e($site['name']) ?> — accueil">
+      <?php if (!empty($settings['logo_url'])): ?><img src="<?= e($settings['logo_url']) ?>" alt="<?= e($site['name']) ?>" class="logo" width="141" height="94"><?php else: ?><span class="brand-name"><?= e($site['name']) ?></span><?php endif; ?>
+    </a>
+    <details class="menu" open>
+      <summary>Menu</summary>
+      <nav aria-label="Navigation principale">
+        <?php foreach ($nav as $i): ?><a href="<?= e($i['url']) ?>" <?= $isActive($i['url']) ? 'aria-current="page"' : '' ?>><?= e($i['label']) ?></a><?php endforeach; ?>
+      </nav>
+    </details>
+    <div class="actions">
+      <a class="btn" href="/terrains">Trouver un terrain</a>
+      <?php if ($user): ?><form method="post" action="/admin/logout" class="inline"><?= csrf_field($csrf) ?><button class="link">Déconnexion</button></form><?php endif; ?>
+    </div>
   </div>
 </header>
-<main id="contenu" class="<?= !empty($fullBleed) ? 'full' : 'site-main' ?>">
+<?php if ($banner): $bp = $texts ? $texts->photo('banner') : null; ?>
+<section class="banner">
+  <?= picture($bp, 3, '', 'banner-img') ?>
+  <div class="wrap banner-body">
+    <nav class="crumbs" aria-label="Fil d'Ariane"><a href="/">Accueil</a><?php if ($parent): ?> <span aria-hidden="true">›</span> <a href="<?= e($parent[1]) ?>"><?= e($parent[0]) ?></a><?php endif; ?></nav>
+    <h1><?= e($heading ?? $title ?? $site['name']) ?></h1>
+  </div>
+</section>
+<?php endif; ?>
+<main id="contenu" class="<?= $isHome || !empty($blocksHtml) ? 'full' : 'site-main wrap' ?>">
   <?php if (!empty($flash)): ?><p class="flash" role="status"><?= e($flash) ?></p><?php endif; ?>
   <?= $content ?>
 </main>
 <footer class="site-foot">
-  <div class="foot-grid">
+  <div class="wrap foot-cols">
     <div class="foot-brand">
-      <?php if (!empty($settings['logo_url'])): ?><img src="<?= e($settings['logo_url']) ?>" alt="<?= e($site['name']) ?>" width="126" height="84" loading="lazy"><?php else: ?><strong><?= e($site['name']) ?></strong><?php endif; ?>
-      <?php if (!empty($settings['tagline'])): ?><p><?= e($settings['tagline']) ?></p><?php endif; ?>
+      <?php if (!empty($settings['logo_url'])): ?><img src="<?= e($settings['logo_url']) ?>" alt="<?= e($site['name']) ?>" width="141" height="94" loading="lazy"><?php else: ?><strong class="foot-name"><?= e($site['name']) ?></strong><?php endif; ?>
+      <p><?= e($settings['tagline'] ?? '') ?></p>
+      <p class="foot-small">Construction, travaux publics et commercialisation de terrains en Côte d'Ivoire.</p>
     </div>
-    <nav class="foot-menu" aria-label="Pied de page">
+    <nav class="foot-col" aria-label="Plan du site"><h2>Navigation</h2>
       <?php foreach (($footerMenu ?: $nav) as $i): ?><a href="<?= e($i['url']) ?>"><?= e($i['label']) ?></a><?php endforeach; ?>
     </nav>
+    <nav class="foot-col" aria-label="Nos activités"><h2>Nos activités</h2>
+      <a href="/terrains">Terrains à vendre</a><a href="/lotissements">Lotissements</a><a href="/services">Construction et BTP</a><a href="/contact?type=info">Demande d'informations</a><a href="/contact">Demander un devis</a>
+    </nav>
+    <div class="foot-col"><h2>Contact</h2>
+      <?php if (!empty($settings['address'])): ?><p><?= e($settings['address']) ?></p><?php endif; ?>
+      <?php if ($phone): ?><a href="tel:<?= e(preg_replace('/[^0-9+]/', '', $phone)) ?>"><?= e($phone) ?></a><?php endif; ?>
+      <?php if ($mail): ?><a href="mailto:<?= e($mail) ?>"><?= e($mail) ?></a><?php endif; ?>
+      <?php if ($wa !== ''): ?><a href="https://wa.me/<?= e($wa) ?>" rel="noopener">WhatsApp</a><?php endif; ?>
+      <a class="btn" href="/contact">Nous écrire</a>
+    </div>
   </div>
-  <div class="foot-contact">
-    <?php if (!empty($settings['phone'])): ?><p>Téléphone<br><a href="tel:<?= e(preg_replace('/[^0-9+]/', '', $settings['phone'])) ?>"><?= e($settings['phone']) ?></a></p><?php endif; ?>
-    <?php if (!empty($settings['email'])): ?><p>Email<br><a href="mailto:<?= e($settings['email']) ?>"><?= e($settings['email']) ?></a></p><?php endif; ?>
-    <?php if ($wa !== ''): ?><p>WhatsApp<br><a href="https://wa.me/<?= e($wa) ?>" rel="noopener">Nous écrire</a></p><?php endif; ?>
-    <?php if (!empty($settings['address'])): ?><p>Adresse<br><?= e($settings['address']) ?></p><?php endif; ?>
+  <div class="wrap foot-legal">
+    <span>© <?= date('Y') ?> <?= e($site['name']) ?> · Côte d'Ivoire</span>
+    <?php $credits = \App\Content\SiteTexts::illustrationCredits(); if ($credits): ?>
+      <details class="credits"><summary>Crédits photos</summary><p>Photos d'illustration, sans lien avec les réalisations de l'entreprise :</p><ul><?php foreach (array_unique($credits) as $c): ?><li><?= e($c) ?></li><?php endforeach; ?></ul></details>
+    <?php endif; ?>
   </div>
-  <p class="foot-legal">© <?= date('Y') ?> <?= e($site['name']) ?> · Côte d'Ivoire</p>
 </footer>
 <?php elseif (!empty($authScreen)): ?>
 <div class="auth"><main><?php if (!empty($flash)): ?><p class="flash" role="status"><?= e($flash) ?></p><?php endif; ?><?= $content ?></main></div>
@@ -84,7 +126,7 @@ $groups = $site ? [
     ['Gestion foncière', [['Terrains', '/admin/terrains', 'map-pin', 'land.view'], ['Lotissements', '/admin/lotissements', 'layers', 'land.manage'], ['Catégories', '/admin/categories', 'list', 'land.manage'], ['Localisations', '/admin/localisations', 'map', 'land.manage']]],
     ['BTP', [['Services', '/admin/services', 'hammer', 'btp.manage'], ['Réalisations', '/admin/realisations', 'hard-hat', 'btp.manage']]],
     ['CRM', [['Prospects', '/admin/prospects', 'users', 'lead.view'], ['Visites', '/admin/visites', 'calendar', 'lead.view']]],
-    ['Contenu', [['Pages', '/admin/pages', 'file-text', 'content.manage'], ['Articles', '/admin/articles', 'clipboard-list', 'content.manage'], ['Médias', '/admin/media', 'images', 'content.manage'], ['Menus', '/admin/menus', 'menu', 'content.manage'], ['Formulaires', '/admin/formulaires', 'message-circle', 'content.manage']]],
+    ['Contenu', [['Textes et photos', '/admin/textes', 'camera', 'content.manage'], ['Pages', '/admin/pages', 'file-text', 'content.manage'], ['Articles', '/admin/articles', 'clipboard-list', 'content.manage'], ['Médias', '/admin/media', 'images', 'content.manage'], ['Menus', '/admin/menus', 'menu', 'content.manage'], ['Formulaires', '/admin/formulaires', 'message-circle', 'content.manage']]],
     ['Configuration', [['Réglages', '/admin/settings', 'settings', 'site.settings'], ['Utilisateurs', '/admin/utilisateurs', 'users', 'users.manage'], ['Journal', '/admin/journal', 'clipboard-list', 'site.settings']]],
 ] : [['', [['Sites', '/platform/sites', 'layout-dashboard', null], ['Sauvegardes', '/platform/backups', 'briefcase', null]]]];
 $current = fn(string $u) => $u === '/admin' ? $path === '/admin' : ($path === $u || str_starts_with($path, $u . '/'));

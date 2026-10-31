@@ -1,4 +1,3 @@
-<h1>Nos services BTP</h1>
 <?php if (!$items): ?><p>Nos prestations seront bientôt présentées ici.</p><?php endif; ?>
 <div class="grid">
 <?php foreach ($items as $s): ?>

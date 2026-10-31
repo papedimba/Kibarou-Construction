@@ -83,7 +83,7 @@ final class LeadController
         [$land, $service] = $this->context($req);
         return $this->page->render('frontend/contact', [
             'land' => $land, 'service' => $service, 'types' => $this->types($land, $service), 'old' => $old, 'errors' => $errors,
-            'spam' => $this->spam->fields(), 'title' => 'Contact',
+            'spam' => $this->spam->fields(), 'title' => 'Contact', 'heading' => $land ? 'Ce terrain vous intéresse' : ($service ? 'Demander un devis' : 'Nous contacter'),
         ], $status);
     }
 }

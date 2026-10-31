@@ -28,7 +28,7 @@
 | 21 | Tests automatisés | ✅ | 133 PHPUnit, 9 scénarios Playwright, 52 contrôles de déploiement, avec et sans mod_rewrite |
 
 ## Points du cahier des charges non réalisés ou partiels
-- **Photographies réelles** : aucune incluse (banques d'images bloquées pendant le développement). Les trois scènes d'accueil sont dessinées et remplaçables (Réglages). À fournir par le client.
+- **Photographies réelles** : aucune incluse (banques d'images bloquées pendant le développement). Chaque emplacement photo affiche un dessin, remplaçable dans *Textes et photos*. À fournir par le client.
 - **Menus du §15** : *Documents* (liste globale), *Témoignages*, *FAQ* ❌ (documents gérés par terrain ; FAQ et témoignages via les blocs de l'éditeur) ; *Catégories* ✅ ; *Notes commerciales* ✅ (par prospect).
 - **Tables du §17** : `categories`/`tags` (articles), `testimonials`, `faqs`, `seo_metadata` ❌.
 - **Optimisation d'images** (redimensionnement, WebP) ❌ ; **cache de pages** ❌.
