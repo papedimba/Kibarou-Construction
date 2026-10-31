@@ -1,19 +1,27 @@
-# Racine du projet. À utiliser quand le dossier public/ ne peut PAS être défini comme racine web (cPanel : public_html).
-# Si vous pouvez pointer le domaine sur public/, ce fichier n'est pas nécessaire (public/.htaccess suffit).
+# Racine du projet, quand le domaine ne peut pas pointer sur public/ (cPanel : public_html).
+# Fonctionne AVEC ou SANS mod_rewrite : la protection et le routage n'en dépendent pas.
 Options -Indexes -MultiViews
+DirectoryIndex index.php
+
+# Jamais servis : fichiers cachés (.env, .git…) et fichiers de projet. Les dossiers app/, storage/, vendor/…
+# contiennent chacun un .htaccess « Require all denied ».
+<FilesMatch "^(\.|composer\.(json|lock)$|phpunit\.xml$|(README|PRODUCT)\.md$)">
+  Require all denied
+</FilesMatch>
+
+# Toute adresse qui n'est pas un fichier réel va au contrôleur (mod_dir, présent partout)
+FallbackResource /index.php
+
+# Si mod_rewrite est disponible, les fichiers statiques sont servis directement depuis public/ (plus rapide)
 <IfModule mod_rewrite.c>
   RewriteEngine On
-
-  # Jamais servi : code, configuration, données, sauvegardes, dépendances, documentation
   RewriteRule ^(app|bin|config|database|docs|routes|storage|tests|vendor|dist)(/|$) - [F,L]
-  RewriteRule ^(composer\.(json|lock)|phpunit\.xml|README\.md|PRODUCT\.md)$ - [F,L]
-  # Fichiers cachés (.env, .git…), sauf .well-known (validation SSL)
   RewriteRule (^|/)\.(?!well-known/) - [F,L]
-
-  # Fichiers statiques réels de public/
   RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f
   RewriteRule ^(.*)$ public/$1 [L]
-
-  # Tout le reste passe par le routeur
   RewriteRule ^ public/index.php [L]
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json application/xml image/svg+xml
 </IfModule>

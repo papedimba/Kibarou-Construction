@@ -1,4 +1,10 @@
 Options -Indexes -MultiViews
+DirectoryIndex index.php
+# Sans dépendre de mod_rewrite : fichiers cachés interdits, adresses inexistantes vers le contrôleur
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+FallbackResource /index.php
 <IfModule mod_rewrite.c>
   RewriteEngine On
 

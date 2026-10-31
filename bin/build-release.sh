@@ -16,9 +16,11 @@ tar -C "$ROOT" \
   --exclude='./storage/*' --exclude='./public/uploads/*' --exclude=./public/install.php.bak \
   -cf - . | tar -C "$TMP/kibarou" -xf -
 cp "$ROOT/public/uploads/.htaccess" "$TMP/kibarou/public/uploads/.htaccess"
+cp "$ROOT/storage/.htaccess" "$TMP/kibarou/storage/.htaccess"
 for d in logs cache sessions backups private sites; do mkdir -p "$TMP/kibarou/storage/$d"; touch "$TMP/kibarou/storage/$d/.gitkeep"; done
 
 ( cd "$TMP/kibarou" && composer install --no-dev --optimize-autoloader --no-interaction --no-plugins --quiet )
+printf '# Jamais servi par le web\nRequire all denied\n' > "$TMP/kibarou/vendor/.htaccess"
 echo "$VERSION" > "$TMP/kibarou/VERSION"
 rm -f "$OUT/kibarou-cms-$VERSION.zip"
 ( cd "$TMP" && zip -qr "$OUT/kibarou-cms-$VERSION.zip" kibarou )

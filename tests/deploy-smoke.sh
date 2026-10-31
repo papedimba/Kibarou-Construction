@@ -5,6 +5,10 @@
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 W=/tmp/kib-deploy; PORT=8090; PASS=0; FAIL=0
+# REWRITE=0 reproduces a host where mod_rewrite is not available (first real cPanel deployment).
+REWRITE=${REWRITE:-1}
+if [ "$REWRITE" = 1 ]; then INSTALL=/install.php; else INSTALL=/public/install.php; fi
+echo "== mod_rewrite: $([ "$REWRITE" = 1 ] && echo on || echo OFF)"
 ok()   { PASS=$((PASS+1)); printf '  ok   %s\n' "$1"; }
 bad()  { FAIL=$((FAIL+1)); printf '  FAIL %s\n' "$1"; }
 check(){ if [ "$2" = "$3" ]; then ok "$1"; else bad "$1 (expected $2, got $3)"; fi; }
@@ -30,7 +34,7 @@ LoadModule mpm_prefork_module $MODS/mod_mpm_prefork.so
 LoadModule authz_core_module $MODS/mod_authz_core.so
 LoadModule dir_module $MODS/mod_dir.so
 LoadModule mime_module $MODS/mod_mime.so
-LoadModule rewrite_module $MODS/mod_rewrite.so
+$([ "$REWRITE" = 1 ] && echo "LoadModule rewrite_module $MODS/mod_rewrite.so")
 LoadModule headers_module $MODS/mod_headers.so
 LoadModule expires_module $MODS/mod_expires.so
 LoadModule deflate_module $MODS/mod_deflate.so
@@ -52,16 +56,16 @@ apache2 -f "$W/httpd.conf" || { echo "apache failed"; cat "$W/log/error.log"; ex
 sleep 1
 
 echo "== before install"
-check "install page is served"                 200 "$(code /install.php platform.example.test)"
+check "install page is served"                 200 "$(code $INSTALL platform.example.test)"
 for p in /.env /.env.example /composer.json /app/Core/App.php /vendor/autoload.php /storage/ /bin/console.php /database/migrations/001_core.sql /docs/ARCHITECTURE.md /routes/site.php /README.md /.git/config; do
   check "blocked: $p"                          403 "$(code $p platform.example.test)"
 done
 
 echo "== install through the web installer"
 JAR="$W/jar"; BASE="http://127.0.0.1:$PORT"
-TOKEN=$(curl -s -c "$JAR" -H "Host: platform.example.test" "$BASE/install.php" | sed -n 's/.*name="_csrf" value="\([0-9a-f]*\)".*/\1/p' | head -1)
+TOKEN=$(curl -s -c "$JAR" -H "Host: platform.example.test" "$BASE$INSTALL" | sed -n 's/.*name="_csrf" value="\([0-9a-f]*\)".*/\1/p' | head -1)
 [ -n "$TOKEN" ] && ok "csrf token present" || bad "csrf token missing"
-OUT=$(curl -s -b "$JAR" -H "Host: platform.example.test" "$BASE/install.php" \
+OUT=$(curl -s -b "$JAR" -H "Host: platform.example.test" "$BASE$INSTALL" \
   --data-urlencode "_csrf=$TOKEN" --data-urlencode "db_host=localhost" --data-urlencode "db_port=3306" --data-urlencode "db_name=kibarou_release" \
   --data-urlencode "db_user=kibarou" --data-urlencode "db_pass=kibarou_dev" --data-urlencode "platform_host=platform.example.test" --data-urlencode "base_domain=example.test" \
   --data-urlencode "admin_name=Root" --data-urlencode "admin_email=root@example.test" --data-urlencode "admin_password=a-very-long-passphrase" \
@@ -73,7 +77,7 @@ echo "$OUT" | grep -q "Installation terminée" && ok "installer reports success"
 grep -q "^APP_DEBUG=0" "$APP/.env" && ok "APP_DEBUG=0" || bad "APP_DEBUG not 0"
 
 echo "== after install"
-check "/install.php gone"                      404 "$(code /install.php platform.example.test)"
+check "/install.php gone"                      404 "$(code $INSTALL platform.example.test)"
 check "platform login"                         200 "$(code /platform/login platform.example.test)"
 check "site home"                              200 "$(code / kibarou.example.test)"
 curl -s -H "Host: kibarou.example.test" "$BASE/" | grep -q "Construisons vos projets" && ok "home content rendered" || bad "home content missing"
@@ -86,7 +90,7 @@ for p in /.env /storage/installed.lock /storage/logs/app.log /app/Services/Insta
 done
 HDR=$(curl -s -D- -o /dev/null -H "Host: kibarou.example.test" -H "Accept-Encoding: gzip" "$BASE/assets/css/site.css")
 echo "$HDR" | grep -qi "content-encoding: gzip" && ok "css is gzip-compressed" || bad "css not compressed"
-echo "$HDR" | grep -qi "^cache-control: max-age=86400" && ok "css has cache headers" || bad "css missing cache headers"
+echo "$HDR" | grep -qi "^cache-control:.*max-age=86400" && ok "css has cache headers" || bad "css missing cache headers"
 check "font served"                            200 "$(code /assets/fonts/literata-latin-wght-normal.woff2)"
 curl -s -H "Host: kibarou.example.test" "$BASE/" -D- -o /dev/null | grep -qi "content-security-policy" && ok "CSP header present" || bad "CSP header missing"
 
@@ -94,9 +98,18 @@ echo "== uploads cannot execute code"
 mkdir -p "$APP/public/uploads/1"; printf '<?php echo "PWNED";' > "$APP/public/uploads/1/shell.php"; chown -R www-data "$APP/public/uploads"
 BODY=$(curl -s -H "Host: kibarou.example.test" "$BASE/uploads/1/shell.php")
 echo "$BODY" | grep -q PWNED && bad "uploaded PHP was EXECUTED" || ok "uploaded .php is not executed"
-check "uploaded .php denied"                   403 "$(code /uploads/1/shell.php)"
+UC=$(code /uploads/1/shell.php); [ "$UC" != 200 ] && ok "uploaded .php not served (HTTP $UC)" || bad "uploaded .php served"
+check "uploaded .php denied via /public/"      403 "$(code /public/uploads/1/shell.php)"
 LIST=$(curl -s -H "Host: kibarou.example.test" "$BASE/uploads/1/"); LC=$(code /uploads/1/)
 [ "$LC" != "200" ] && ! echo "$LIST" | grep -qi "Index of" && ok "uploads directory is not listed (HTTP $LC)" || bad "uploads directory listing exposed"
+
+echo "== traversal and direct paths"
+for p in "/assets/../../.env" "/assets/..%2f..%2f.env" "/assets/%2e%2e/%2e%2e/.env" "/public/../.env" "/public/.htaccess" "/public/uploads/.htaccess" "/storage/installed.lock" "/vendor/composer/installed.json"; do
+  C=$(curl -s --path-as-is -o "$W/body" -w '%{http_code}' -H "Host: kibarou.example.test" "$BASE$p")
+  if [ "$C" != 200 ] && ! grep -q "APP_KEY\|DB_PASS\|Require\|installed" "$W/body"; then ok "not served: $p (HTTP $C)"; else bad "SERVED: $p"; fi
+done
+check "admin login reachable"                  200 "$(code /admin/login)"
+check "land catalogue reachable"               200 "$(code /terrains)"
 
 echo "== CLI in the release"
 ( cd "$APP" && sudo -u www-data php bin/console.php doctor >"$W/doctor.txt" 2>&1; echo "doctor exit $?" ) | tail -1

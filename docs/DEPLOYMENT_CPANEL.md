@@ -8,7 +8,7 @@ cPanel → **MultiPHP Manager** : choisir PHP 8.2 ou 8.3 pour le domaine. **Mult
 ## 2. Où mettre les fichiers
 Ordre de préférence :
 1. **Domaine pointé sur `public/` (recommandé).** Décompresser l'archive dans `~/kibarou/`, puis cPanel → **Domains** → *Manage* → *Document Root* = `kibarou/public`. Seul `public/` est alors exposé ; `.env`, `app/`, `storage/` sont hors web.
-2. **Racine web imposée (`public_html`).** Décompresser l'archive dans `public_html/`. Le `.htaccess` de la racine interdit `app/`, `storage/`, `vendor/`, `.env`, etc. et redirige tout vers `public/`. À vérifier après installation : `https://domaine/.env` doit répondre **403**.
+2. **Racine web imposée (`public_html`).** Décompresser l'archive dans `public_html/` **avec ses fichiers cachés** (`.htaccess`). La protection ne dépend pas de `mod_rewrite` : `.env` et les fichiers de projet sont refusés par `FilesMatch`, chaque dossier sensible (`app/`, `storage/`, `vendor/`…) contient son propre `.htaccess` « Require all denied », et le routage passe par `index.php` + `FallbackResource` (testé avec et sans `mod_rewrite`). À vérifier après installation : `https://domaine/.env` doit répondre **403**.
 3. **Application hors `public_html` avec lien.** Décompresser dans `~/kibarou/` et remplacer `public_html` par un lien symbolique vers `~/kibarou/public` (si l'hébergeur le permet).
 
 ## 3. Base MySQL
@@ -64,6 +64,7 @@ Remplace **toute** la base et réécrit les fichiers de l'archive ; l'archive es
 | Symptôme | Piste |
 |---|---|
 | Erreur 500 | `storage/logs/app.log` ; mettre temporairement `APP_DEBUG=1` ; vérifier la version de PHP |
+| 403 sur l'accueil, journal `AH01276 … No matching DirectoryIndex` | `index.php` ou `.htaccess` absent à la racine de `public_html` (fichiers cachés non déplacés) : réinstaller depuis l'archive avec « Show Hidden Files » activé |
 | 403 partout | `AllowOverride` désactivé pour le domaine, ou `.htaccess` non envoyé (fichier caché dans le gestionnaire de fichiers : activer « Show Hidden Files ») |
 | 404 sur toutes les pages sauf l'accueil | `mod_rewrite` / `.htaccess` ignoré |
 | Page sans style | domaine pointé sur la racine alors que le `.htaccess` racine est absent |
